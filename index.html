@@ -199,6 +199,23 @@
     document.getElementById('faltan-texto').innerHTML = faltan > 0
       ? 'Te faltan <strong>' + faltan + '</strong> punto' + (faltan > 1 ? 's' : '') + ' para tu partido gratis'
       : '¡Ya podés canjear tu partido gratis!';
+
+    // Verificar si ya registró punto hoy
+    const hoy = new Date().toLocaleDateString('es-CR');
+    const ultimoPunto = data.ultimoPunto ? data.ultimoPunto.substring(0, 10) : '';
+    const fechaUltimo = ultimoPunto ? new Date(ultimoPunto.split('/').reverse().join('-')).toLocaleDateString('es-CR') : '';
+
+    const btn = document.getElementById('btn-punto');
+    if (fechaUltimo === hoy) {
+      btn.disabled = true;
+      btn.textContent = '✅ Punto ya registrado hoy';
+      btn.style.background = '#2E7D32';
+    } else {
+      btn.disabled = false;
+      btn.textContent = 'Registrar punto de hoy ⚽';
+      btn.style.background = '#B71C1C';
+    }
+
     mostrarPantalla('pantalla-cliente');
   }
 
