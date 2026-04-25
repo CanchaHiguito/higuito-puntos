@@ -262,9 +262,24 @@
   async function canjearPremio() {
     try {
       await fetch(SCRIPT_URL + '?accion=canjear&telefono=' + telefonoActual);
-      alert('¡Premio canjeado! Tus puntos volvieron a 0. ¡A seguir jugando!');
-      localStorage.removeItem('higuito_telefono');
-      location.reload();
+      // Mostrar pantalla de confirmación dentro de la PWA
+      document.getElementById('pantalla-premio').innerHTML = `
+        <div style="background:#000;padding:20px 16px;text-align:center;border-bottom:3px solid #F9A825">
+          <h2 style="color:#F9A825;font-size:20px;font-weight:900;margin:0">✅ ¡Premio canjeado!</h2>
+          <p style="color:#fff;font-size:13px;margin-top:4px">Tus puntos volvieron a 0</p>
+        </div>
+        <div style="background:#fff;padding:24px 20px;text-align:center">
+          <div style="font-size:56px;margin-bottom:12px">⚽</div>
+          <p style="font-size:15px;color:#333;line-height:1.7;margin-bottom:20px">
+            <strong>¡Disfrutá tu partido gratis!</strong><br>
+            Ya podés empezar a acumular puntos nuevamente.<br>
+            ¡Nos vemos en la cancha!
+          </p>
+          <button onclick="location.reload()" style="width:100%;padding:14px;background:#B71C1C;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:bold;cursor:pointer">
+            Volver al inicio
+          </button>
+        </div>
+      `;
     } catch(e) {
       alert('Error al canjear. Mostrá la pantalla al encargado de todas formas.');
     }
