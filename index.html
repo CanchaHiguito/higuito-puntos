@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Centro Deportivo Higuito — Puntos</title>
+  <meta name="theme-color" content="#000000">
+  <link rel="manifest" href="manifest.json">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background: #111; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 16px; }
+    .card { background: #fff; border-radius: 16px; overflow: hidden; width: 100%; max-width: 380px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
+    .header { background: #000; padding: 24px 16px 16px; text-align: center; border-bottom: 3px solid #F9A825; }
+    .header h1 { color: #F9A825; font-size: 13px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }
+    .header h2 { color: #B71C1C; font-size: 28px; font-weight: 900; letter-spacing: 3px; }
+    .header p { color: #fff; font-size: 12px; margin-top: 6px; opacity: 0.8; }
+    .body { padding: 24px 20px; }
+
+    /* PANTALLA: Ingresar número */
+    #pantalla-numero { display: block; }
+    .input-group { margin-bottom: 16px; }
+    .input-group label { display: block; font-size: 13px; color: #555; margin-bottom: 6px; font-weight: bold; }
+    .input-group input { width: 100%; padding: 14px; border: 2px solid #ddd; border-radius: 8px; font-size: 18px; text-align: center; letter-spacing: 2px; }
+    .input-group input:focus { outline: none; border-color: #B71C1C; }
+    .btn-rojo { width: 100%; padding: 14px; background: #B71C1C; color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 8px; }
+    .btn-rojo:active { background: #8B0000; }
+    .btn-verde { width: 100%; padding: 14px; background: #2E7D32; color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 8px; }
+    .nota { font-size: 11px; color: #999; text-align: center; margin-top: 12px; line-height: 1.5; }
+
+    /* PANTALLA: Cliente encontrado */
+    #pantalla-cliente { display: none; }
+    .cliente-info { background: #f5f5f5; border-left: 4px solid #B71C1C; padding: 12px; margin-bottom: 20px; }
+    .cliente-info h3 { font-size: 18px; color: #111; margin-bottom: 2px; }
+    .cliente-info p { font-size: 12px; color: #777; }
+    .puntos-display { text-align: center; margin-bottom: 16px; }
+    .puntos-numero { font-size: 56px; font-weight: 900; color: #B71C1C; line-height: 1; }
+    .puntos-texto { font-size: 13px; color: #777; margin-top: 4px; }
+    .barra-wrap { margin-bottom: 20px; }
+    .barra-track { background: #e0e0e0; border-radius: 20px; height: 14px; overflow: hidden; margin-bottom: 6px; }
+    .barra-fill { background: #2E7D32; height: 100%; border-radius: 20px; transition: width 0.5s ease; }
+    .barra-labels { display: flex; justify-content: space-between; font-size: 11px; color: #999; }
+    .faltan { text-align: center; font-size: 13px; color: #555; margin-bottom: 16px; }
+    .faltan strong { color: #B71C1C; }
+
+    /* PANTALLA: Premio */
+    #pantalla-premio { display: none; }
+    .premio-header { background: #000; padding: 20px; text-align: center; border-bottom: 3px solid #F9A825; }
+    .premio-header h2 { color: #F9A825; font-size: 22px; font-weight: 900; }
+    .premio-header p { color: #fff; font-size: 13px; margin-top: 4px; }
+    .premio-body { padding: 24px 20px; text-align: center; }
+    .trofeo { font-size: 56px; margin-bottom: 12px; }
+    .premio-texto { font-size: 14px; color: #333; line-height: 1.7; margin-bottom: 20px; }
+    .seguridad-nota { background: #FFF8E1; border: 1px solid #FFE082; border-radius: 8px; padding: 12px; font-size: 11px; color: #F57F17; line-height: 1.6; margin-top: 12px; }
+
+    /* PANTALLA: Ya registrado hoy */
+    #pantalla-ya-registrado { display: none; }
+    .ya-badge { text-align: center; padding: 20px; }
+    .ya-badge .icono { font-size: 48px; margin-bottom: 12px; }
+    .ya-badge h3 { font-size: 18px; color: #2E7D32; margin-bottom: 8px; }
+    .ya-badge p { font-size: 13px; color: #555; line-height: 1.6; }
+
+    .loading { text-align: center; padding: 20px; color: #777; font-size: 14px; display: none; }
+    .error-msg { background: #FFEBEE; border-radius: 8px; padding: 12px; font-size: 13px; color: #B71C1C; text-align: center; margin-top: 12px; display: none; }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <div class="header">
+    <h1>Centro Deportivo</h1>
+    <h2>HIGUITO</h2>
+    <p>Sistema de puntos — Partido gratis en 10</p>
+  </div>
+
+  <!-- PANTALLA 1: Ingresar número -->
+  <div class="body" id="pantalla-numero">
+    <div class="input-group">
+      <label>Ingresá tu número de WhatsApp</label>
+      <input type="tel" id="input-telefono" placeholder="506XXXXXXXX" maxlength="11">
+    </div>
+    <button class="btn-rojo" onclick="verificarNumero()">Consultar mis puntos</button>
+    <div class="loading" id="loading-verificar">Verificando...</div>
+    <div class="error-msg" id="error-verificar"></div>
+    <p class="nota">Ingresá tu número con código de país. Ej: 50688881111</p>
+  </div>
+
+  <!-- PANTALLA 2: Cliente encontrado -->
+  <div class="body" id="pantalla-cliente">
+    <div class="cliente-info">
+      <h3 id="cliente-nombre">Juan Pérez</h3>
+      <p id="cliente-telefono">506XXXXXXXX</p>
+    </div>
+    <div class="puntos-display">
+      <div class="puntos-numero" id="puntos-numero">0</div>
+      <div class="puntos-texto">puntos acumulados</div>
+    </div>
+    <div class="barra-wrap">
+      <div class="barra-track">
+        <div class="barra-fill" id="barra-fill" style="width:0%"></div>
+      </div>
+      <div class="barra-labels"><span>0</span><span>5</span><span>10</span></div>
+    </div>
+    <p class="faltan" id="faltan-texto">Te faltan <strong>10</strong> puntos para tu partido gratis</p>
+    <button class="btn-rojo" id="btn-punto" onclick="registrarPunto()">Registrar punto de hoy ⚽</button>
+    <div class="loading" id="loading-punto">Registrando...</div>
+    <div class="error-msg" id="error-punto"></div>
+    <p class="nota">Un punto por partido jugado. El sistema verifica automáticamente.</p>
+  </div>
+
+  <!-- PANTALLA 3: Ya registrado hoy -->
+  <div class="body" id="pantalla-ya-registrado">
+    <div class="ya-badge">
+      <div class="icono">✅</div>
+      <h3>¡Ya registraste tu punto hoy!</h3>
+      <p id="ya-registrado-texto">Solo podés registrar un punto por partido jugado. ¡Volvé la próxima vez que vengás a jugar!</p>
+    </div>
+    <div class="cliente-info" style="margin-top:16px">
+      <h3 id="ya-nombre">Juan</h3>
+      <p id="ya-puntos">Puntos acumulados: 0</p>
+    </div>
+  </div>
+
+  <!-- PANTALLA 4: Premio -->
+  <div id="pantalla-premio">
+    <div class="premio-header">
+      <h2>🏆 ¡PARTIDO GRATIS!</h2>
+      <p>¡Llegaste a 10 puntos!</p>
+    </div>
+    <div class="premio-body">
+      <div class="trofeo">🎉</div>
+      <p class="premio-texto">
+        <strong>Este partido es GRATIS.</strong><br>
+        Mostrá esta pantalla al encargado ahora mismo para que confirme tu acceso gratuito.
+      </p>
+      <button class="btn-verde" onclick="canjearPremio()">Canjear partido gratis</button>
+      <div class="seguridad-nota">
+        El encargado recibió un mensaje por WhatsApp confirmando tu premio. Tus puntos volverán a 0 al canjear.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const SCRIPT_URL = 'TU_URL_DE_APPS_SCRIPT_AQUI';
+  let telefonoActual = '';
+
+  // Cargar teléfono guardado
+  window.onload = function() {
+    const telGuardado = localStorage.getItem('higuito_telefono');
+    if (telGuardado) {
+      document.getElementById('input-telefono').value = telGuardado;
+    }
+  };
+
+  function mostrarPantalla(id) {
+    ['pantalla-numero','pantalla-cliente','pantalla-ya-registrado','pantalla-premio'].forEach(p => {
+      document.getElementById(p).style.display = 'none';
+    });
+    document.getElementById(id).style.display = 'block';
+  }
+
+  async function verificarNumero() {
+    const telefono = document.getElementById('input-telefono').value.trim();
+    if (!telefono || telefono.length < 10) {
+      mostrarError('error-verificar', 'Ingresá un número válido con código de país.');
+      return;
+    }
+    document.getElementById('loading-verificar').style.display = 'block';
+    document.getElementById('error-verificar').style.display = 'none';
+
+    try {
+      const resp = await fetch(SCRIPT_URL + '?accion=verificar&telefono=' + telefono);
+      const data = await resp.json();
+
+      document.getElementById('loading-verificar').style.display = 'none';
+
+      if (data.encontrado) {
+        telefonoActual = telefono;
+        localStorage.setItem('higuito_telefono', telefono);
+        mostrarCliente(data);
+      } else {
+        mostrarError('error-verificar', 'Número no registrado. Te llegará un mensaje por WhatsApp para registrarte.');
+        // Aquí BuilderBot entraría a registrar al cliente
+      }
+    } catch(e) {
+      document.getElementById('loading-verificar').style.display = 'none';
+      mostrarError('error-verificar', 'Error de conexión. Intentá de nuevo.');
+    }
+  }
+
+  function mostrarCliente(data) {
+    document.getElementById('cliente-nombre').textContent = data.nombre;
+    document.getElementById('cliente-telefono').textContent = telefonoActual;
+    document.getElementById('puntos-numero').textContent = data.puntos;
+    const pct = Math.min((data.puntos / 10) * 100, 100);
+    document.getElementById('barra-fill').style.width = pct + '%';
+    const faltan = Math.max(10 - data.puntos, 0);
+    document.getElementById('faltan-texto').innerHTML = faltan > 0
+      ? 'Te faltan <strong>' + faltan + '</strong> punto' + (faltan > 1 ? 's' : '') + ' para tu partido gratis'
+      : '¡Ya podés canjear tu partido gratis!';
+    mostrarPantalla('pantalla-cliente');
+  }
+
+  async function registrarPunto() {
+    document.getElementById('loading-punto').style.display = 'block';
+    document.getElementById('error-punto').style.display = 'none';
+    document.getElementById('btn-punto').disabled = true;
+
+    try {
+      const resp = await fetch(SCRIPT_URL + '?accion=sumarPunto&telefono=' + telefonoActual);
+      const data = await resp.json();
+
+      document.getElementById('loading-punto').style.display = 'none';
+      document.getElementById('btn-punto').disabled = false;
+
+      if (data.ok) {
+        if (data.premio) {
+          mostrarPantalla('pantalla-premio');
+        } else {
+          // Actualizar pantalla con nuevos puntos
+          document.getElementById('puntos-numero').textContent = data.puntos;
+          const pct = Math.min((data.puntos / 10) * 100, 100);
+          document.getElementById('barra-fill').style.width = pct + '%';
+          const faltan = Math.max(10 - data.puntos, 0);
+          document.getElementById('faltan-texto').innerHTML = 'Te faltan <strong>' + faltan + '</strong> punto' + (faltan > 1 ? 's' : '') + ' para tu partido gratis';
+          document.getElementById('btn-punto').disabled = true;
+          document.getElementById('btn-punto').textContent = '✅ Punto registrado';
+          document.getElementById('btn-punto').style.background = '#2E7D32';
+        }
+      } else if (data.motivo === 'ya_registrado') {
+        document.getElementById('ya-nombre').textContent = document.getElementById('cliente-nombre').textContent;
+        document.getElementById('ya-puntos').textContent = 'Puntos acumulados: ' + document.getElementById('puntos-numero').textContent;
+        mostrarPantalla('pantalla-ya-registrado');
+      } else {
+        mostrarError('error-punto', 'Error al registrar. Intentá de nuevo.');
+      }
+    } catch(e) {
+      document.getElementById('loading-punto').style.display = 'none';
+      document.getElementById('btn-punto').disabled = false;
+      mostrarError('error-punto', 'Error de conexión. Intentá de nuevo.');
+    }
+  }
+
+  async function canjearPremio() {
+    try {
+      await fetch(SCRIPT_URL + '?accion=canjear&telefono=' + telefonoActual);
+      alert('¡Premio canjeado! Tus puntos volvieron a 0. ¡A seguir jugando!');
+      localStorage.removeItem('higuito_telefono');
+      location.reload();
+    } catch(e) {
+      alert('Error al canjear. Mostrá la pantalla al encargado de todas formas.');
+    }
+  }
+
+  function mostrarError(id, msg) {
+    const el = document.getElementById(id);
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+</script>
+
+</body>
+</html>
