@@ -10,101 +10,43 @@
   <link rel="manifest" href="manifest.json">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    html, body {
-      height: 100%;
-      width: 100%;
-      overflow: hidden;
-    }
-
-    body {
-      font-family: Arial, sans-serif;
-      background: #000;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* ── HEADER fijo arriba en todas las pantallas ── */
-    .header {
-      background: #000;
-      padding: 20px 16px 14px;
-      text-align: center;
-      border-bottom: 3px solid #F9A825;
-      flex-shrink: 0;
-      padding-top: max(20px, env(safe-area-inset-top));
-    }
+    html, body { height: 100%; width: 100%; overflow: hidden; }
+    body { font-family: Arial, sans-serif; background: #000; display: flex; flex-direction: column; }
+    .header { background: #000; padding: 20px 16px 14px; text-align: center; border-bottom: 3px solid #F9A825; flex-shrink: 0; padding-top: max(20px, env(safe-area-inset-top)); }
     .header h1 { color: #F9A825; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 2px; }
     .header h2 { color: #B71C1C; font-size: 26px; font-weight: 900; letter-spacing: 3px; }
     .header p  { color: #fff; font-size: 11px; margin-top: 4px; opacity: 0.8; }
-
-    /* ── CONTENEDOR de pantallas ── */
-    .pantallas {
-      flex: 1;
-      background: #fff;
-      overflow-y: auto;
-      position: relative;
-      padding-bottom: env(safe-area-inset-bottom);
-    }
-
-    /* Cada pantalla ocupa el 100% del contenedor */
-    .pantalla {
-      display: none;
-      min-height: 100%;
-      padding: 24px 20px;
-    }
+    .pantallas { flex: 1; background: #fff; overflow-y: auto; position: relative; padding-bottom: env(safe-area-inset-bottom); }
+    .pantalla { display: none; min-height: 100%; padding: 24px 20px; }
     .pantalla.activa { display: flex; flex-direction: column; justify-content: center; }
-
-    #pantalla-premio {
-      display: none;
-      min-height: 100%;
-      flex-direction: column;
-    }
+    #pantalla-premio { display: none; min-height: 100%; flex-direction: column; }
     #pantalla-premio.activa { display: flex; }
-
-    #pantalla-gracias {
-      display: none;
-      min-height: 100%;
-      flex-direction: column;
-      justify-content: center;
-    }
+    #pantalla-gracias { display: none; min-height: 100%; flex-direction: column; justify-content: center; }
     #pantalla-gracias.activa { display: flex; }
-
-    /* ── Componentes ── */
     .input-group { margin-bottom: 16px; }
     .input-group label { display: block; font-size: 13px; color: #555; margin-bottom: 6px; font-weight: bold; }
-    .input-group input {
-      width: 100%; padding: 16px;
-      border: 2px solid #ddd; border-radius: 8px;
-      font-size: 20px; text-align: center; letter-spacing: 2px;
-    }
+    .input-group input { width: 100%; padding: 16px; border: 2px solid #ddd; border-radius: 8px; font-size: 20px; text-align: center; letter-spacing: 2px; }
     .input-group input:focus { outline: none; border-color: #B71C1C; }
-
     .btn-rojo { width: 100%; padding: 16px; background: #B71C1C; color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 8px; }
     .btn-rojo:active { background: #8B0000; }
     .btn-verde { width: 100%; padding: 16px; background: #2E7D32; color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 8px; }
     .nota { font-size: 11px; color: #999; text-align: center; margin-top: 12px; line-height: 1.5; }
-
     .cliente-info { background: #f5f5f5; border-left: 4px solid #B71C1C; padding: 12px; margin-bottom: 20px; border-radius: 4px; }
     .cliente-info h3 { font-size: 18px; color: #111; margin-bottom: 2px; }
     .cliente-info p  { font-size: 12px; color: #777; }
-
     .puntos-display { text-align: center; margin-bottom: 16px; }
     .puntos-numero  { font-size: 72px; font-weight: 900; color: #B71C1C; line-height: 1; }
     .puntos-texto   { font-size: 13px; color: #777; margin-top: 4px; }
-
     .barra-wrap   { margin-bottom: 20px; }
     .barra-track  { background: #e0e0e0; border-radius: 20px; height: 16px; overflow: hidden; margin-bottom: 6px; }
     .barra-fill   { background: #2E7D32; height: 100%; border-radius: 20px; transition: width 0.5s ease; }
     .barra-labels { display: flex; justify-content: space-between; font-size: 11px; color: #999; }
-
     .faltan        { text-align: center; font-size: 14px; color: #555; margin-bottom: 16px; }
     .faltan strong { color: #B71C1C; }
-
     .ya-badge        { text-align: center; padding: 20px 0; }
     .ya-badge .icono { font-size: 64px; margin-bottom: 16px; }
     .ya-badge h3     { font-size: 20px; color: #2E7D32; margin-bottom: 8px; }
     .ya-badge p      { font-size: 14px; color: #555; line-height: 1.6; }
-
     .premio-header    { background: #000; padding: 24px 20px; text-align: center; border-bottom: 3px solid #F9A825; flex-shrink: 0; }
     .premio-header h2 { color: #F9A825; font-size: 24px; font-weight: 900; }
     .premio-header p  { color: #fff; font-size: 13px; margin-top: 4px; }
@@ -112,7 +54,6 @@
     .trofeo           { font-size: 72px; margin-bottom: 16px; }
     .premio-texto     { font-size: 15px; color: #333; line-height: 1.7; margin-bottom: 20px; }
     .seguridad-nota   { background: #FFF8E1; border: 1px solid #FFE082; border-radius: 8px; padding: 12px; font-size: 11px; color: #F57F17; line-height: 1.6; margin-top: 12px; }
-
     .gracias-wrap         { padding: 32px 20px; text-align: center; flex: 1; display: flex; flex-direction: column; justify-content: center; }
     .gracias-icono        { font-size: 72px; margin-bottom: 16px; animation: pop 0.4s ease; }
     @keyframes pop { 0% { transform: scale(0.4); opacity: 0; } 80% { transform: scale(1.15); } 100% { transform: scale(1); opacity: 1; } }
@@ -128,7 +69,6 @@
     .gracias-faltan strong { color: #B71C1C; }
     .gracias-countdown     { font-size: 12px; color: #aaa; margin-top: 20px; }
     .gracias-countdown span { font-weight: bold; color: #555; }
-
     .loading   { text-align: center; padding: 16px; color: #777; font-size: 14px; display: none; }
     .error-msg { background: #FFEBEE; border-radius: 8px; padding: 12px; font-size: 13px; color: #B71C1C; text-align: center; margin-top: 12px; display: none; }
   </style>
@@ -158,7 +98,7 @@
     <!-- PANTALLA 2: Cliente encontrado -->
     <div class="pantalla" id="pantalla-cliente">
       <div class="cliente-info">
-        <h3 id="cliente-nombre">Juan Pérez</h3>
+        <h3 id="cliente-nombre">Juan</h3>
         <p id="cliente-telefono">506XXXXXXXX</p>
       </div>
       <div class="puntos-display">
@@ -190,29 +130,31 @@
         <p id="ya-puntos">Puntos acumulados: 0</p>
       </div>
     </div>
-<!-- PANTALLA: Registro nuevo cliente -->
-<div class="pantalla" id="pantalla-registro">
-  <div class="cliente-info" style="border-left: 4px solid #2E7D32;">
-    <h3 style="color:#2E7D32">📝 Registro en la promo</h3>
-    <p>Completá tus datos para participar</p>
-  </div>
-  <div class="input-group" style="margin-top:16px">
-    <label>Nombre completo</label>
-    <input type="text" id="reg-nombre" placeholder="Ej: Juan Pérez">
-  </div>
-  <div class="input-group">
-    <label>Número de cédula</label>
-    <input type="text" id="reg-cedula" placeholder="Ej: 110210948">
-  </div>
-  <div class="input-group">
-    <label>Fecha de nacimiento</label>
-    <input type="text" id="reg-fecha" placeholder="DD/MM/AAAA">
-  </div>
-  <button class="btn-rojo" onclick="registrarCliente()">Registrarme ⚽</button>
-  <div class="loading" id="loading-registro" style="display:none">Registrando...</div>
-  <div class="error-msg" id="error-registro" style="display:none"></div>
-  <p class="nota">🏆 Con 10 partidos jugados ganás uno GRATIS</p>
-</div>
+
+    <!-- PANTALLA: Registro nuevo cliente -->
+    <div class="pantalla" id="pantalla-registro">
+      <div class="cliente-info" style="border-left: 4px solid #2E7D32;">
+        <h3 style="color:#2E7D32">📝 Registro en la promo</h3>
+        <p>Completá tus datos para participar</p>
+      </div>
+      <div class="input-group" style="margin-top:16px">
+        <label>Tu nombre</label>
+        <input type="text" id="reg-nombre" placeholder="Ej: Juan">
+      </div>
+      <div class="input-group">
+        <label>Número de cédula</label>
+        <input type="text" id="reg-cedula" placeholder="Ej: 110210948">
+      </div>
+      <div class="input-group">
+        <label>Fecha de nacimiento</label>
+        <input type="text" id="reg-fecha" placeholder="DD/MM/AAAA">
+      </div>
+      <button class="btn-rojo" onclick="registrarCliente()">Registrarme ⚽</button>
+      <div class="loading" id="loading-registro" style="display:none">Registrando...</div>
+      <div class="error-msg" id="error-registro" style="display:none"></div>
+      <p class="nota">🏆 Con 10 partidos jugados ganás uno GRATIS</p>
+    </div>
+
     <!-- PANTALLA 4: Premio -->
     <div id="pantalla-premio">
       <div class="premio-header">
@@ -269,7 +211,6 @@
     document.getElementById('pantalla-premio').style.display  = 'none';
     document.getElementById('pantalla-gracias').classList.remove('activa');
     document.getElementById('pantalla-gracias').style.display = 'none';
-
     const el = document.getElementById(id);
     if (el.classList.contains('pantalla')) {
       el.classList.add('activa');
@@ -297,7 +238,7 @@
         mostrarCliente(data);
       } else {
         telefonoActual = telefono;
-mostrarPantalla('pantalla-registro');
+        mostrarPantalla('pantalla-registro');
       }
     } catch(e) {
       document.getElementById('loading-verificar').style.display = 'none';
@@ -412,12 +353,13 @@ mostrarPantalla('pantalla-registro');
       alert('Error al canjear. Mostrá la pantalla al encargado de todas formas.');
     }
   }
-async function registrarCliente() {
+
+  async function registrarCliente() {
     const nombre = document.getElementById('reg-nombre').value.trim();
     const cedula = document.getElementById('reg-cedula').value.trim();
     const fecha = document.getElementById('reg-fecha').value.trim();
 
-    if (!nombre) { mostrarError('error-registro', 'Ingresá tu nombre completo.'); return; }
+    if (!nombre) { mostrarError('error-registro', 'Ingresá tu nombre.'); return; }
     if (!cedula) { mostrarError('error-registro', 'Ingresá tu número de cédula.'); return; }
     if (!fecha) { mostrarError('error-registro', 'Ingresá tu fecha de nacimiento.'); return; }
 
@@ -427,11 +369,9 @@ async function registrarCliente() {
     try {
       const resp = await fetch(SCRIPT_URL + '?accion=registrarCliente&telefono=' + telefonoActual + '&nombre=' + encodeURIComponent(nombre) + '&cedula=' + encodeURIComponent(cedula) + '&fechaNacimiento=' + encodeURIComponent(fecha));
       const data = await resp.json();
-
       document.getElementById('loading-registro').style.display = 'none';
 
       if (data.ok) {
-        // Mostrar pantalla de éxito
         document.getElementById('pantalla-registro').innerHTML = `
           <div style="text-align:center;padding:24px 16px">
             <div style="font-size:56px;margin-bottom:12px">🎉</div>
@@ -454,6 +394,7 @@ async function registrarCliente() {
       mostrarError('error-registro', 'Error de conexión. Intentá de nuevo.');
     }
   }
+
   function mostrarError(id, msg) {
     const el = document.getElementById(id);
     el.textContent   = msg;
