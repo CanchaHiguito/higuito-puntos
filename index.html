@@ -113,6 +113,7 @@
       </div>
       <p class="faltan" id="faltan-texto">Te faltan <strong>10</strong> puntos para tu partido gratis</p>
       <button class="btn-rojo" id="btn-punto" onclick="registrarPunto()">Registrar punto de hoy ⚽</button>
+      <button class="btn-verde" onclick="mostrarQRCliente()">📲 Ver mi QR</button>
       <div class="loading" id="loading-punto">Registrando...</div>
       <div class="error-msg" id="error-punto"></div>
       <p class="nota">Un punto por partido jugado. El sistema verifica automáticamente.</p>
@@ -154,21 +155,23 @@
       <div class="error-msg" id="error-registro" style="display:none"></div>
       <p class="nota">🏆 Con 10 partidos jugados ganás uno GRATIS</p>
     </div>
-<!-- PANTALLA: Mi QR personal -->
-<div class="pantalla" id="pantalla-qr-cliente">
-  <div class="cliente-info">
-    <h3 id="qr-cliente-nombre">Juan</h3>
-    <p id="qr-cliente-puntos">0 puntos acumulados</p>
-  </div>
-  <div style="text-align:center;margin:16px 0">
-    <p style="font-size:13px;color:#555;margin-bottom:16px">Mostrá este QR al encargado para sumar tu punto de hoy ⚽</p>
-    <div style="background:#fff;border:3px solid #B71C1C;border-radius:16px;padding:16px;display:inline-block">
-      <img id="qr-cliente-imagen" src="" alt="Mi QR" style="width:200px;height:200px;display:block">
+
+    <!-- PANTALLA: Mi QR personal -->
+    <div class="pantalla" id="pantalla-qr-cliente">
+      <div class="cliente-info">
+        <h3 id="qr-cliente-nombre">Juan</h3>
+        <p id="qr-cliente-puntos">0 puntos acumulados</p>
+      </div>
+      <div style="text-align:center;margin:16px 0">
+        <p style="font-size:13px;color:#555;margin-bottom:16px">Mostrá este QR al encargado para sumar tu punto de hoy ⚽</p>
+        <div style="background:#fff;border:3px solid #B71C1C;border-radius:16px;padding:16px;display:inline-block">
+          <img id="qr-cliente-imagen" src="" alt="Mi QR" style="width:200px;height:200px;display:block">
+        </div>
+      </div>
+      <button class="btn-rojo" style="margin-top:16px" onclick="mostrarPantalla('pantalla-cliente')">← Volver a mis puntos</button>
+      <p class="nota">El encargado escaneará este QR para darte tu punto</p>
     </div>
-  </div>
-  <button class="btn-rojo" style="margin-top:16px" onclick="mostrarPantalla('pantalla-cliente')">← Volver a mis puntos</button>
-  <p class="nota">El encargado escaneará este QR para darte tu punto</p>
-</div>
+
     <!-- PANTALLA 4: Premio -->
     <div id="pantalla-premio">
       <div class="premio-header">
@@ -280,6 +283,17 @@
       btn.disabled = false; btn.textContent = 'Registrar punto de hoy ⚽'; btn.style.background = '#B71C1C';
     }
     mostrarPantalla('pantalla-cliente');
+  }
+
+  function mostrarQRCliente() {
+    const nombre = document.getElementById('cliente-nombre').textContent;
+    const puntos = document.getElementById('puntos-numero').textContent;
+    document.getElementById('qr-cliente-nombre').textContent = nombre;
+    document.getElementById('qr-cliente-puntos').textContent = puntos + ' puntos acumulados';
+    const qrData = 'https://canchahiguito.github.io/higuito-puntos/encargado-scan.html?tel=' + telefonoActual;
+    const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(qrData);
+    document.getElementById('qr-cliente-imagen').src = qrUrl;
+    mostrarPantalla('pantalla-qr-cliente');
   }
 
   async function registrarPunto() {
