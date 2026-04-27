@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Escaneando — Higuito</title>
+  <meta name="theme-color" content="#000000">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background: #000; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+    .card { background: #fff; border-radius: 16px; padding: 32px 24px; width: 100%; max-width: 360px; text-align: center; }
+    .icono { font-size: 64px; margin-bottom: 16px; }
+    h2 { font-size: 22px; font-weight: 900; margin-bottom: 8px; }
+    p { font-size: 14px; color: #555; line-height: 1.6; margin-bottom: 16px; }
+    .puntos { font-size: 48px; font-weight: 900; color: #B71C1C; margin: 8px 0; }
+    .barra-track { background: #e0e0e0; border-radius: 20px; height: 16px; overflow: hidden; margin: 12px 0 4px; }
+    .barra-fill { background: #2E7D32; height: 100%; border-radius: 20px; transition: width 1s ease; }
+    .barra-labels { display: flex; justify-content: space-between; font-size: 11px; color: #999; margin-bottom: 16px; }
+    .nombre { font-size: 20px; font-weight: bold; color: #111; margin-bottom: 4px; }
+    .btn { width: 100%; padding: 14px; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 8px; }
+    .btn-verde { background: #2E7D32; color: #fff; }
+    .loading { color: #777; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <div class="card" id="card">
+    <div class="icono">⏳</div>
+    <h2 class="loading">Procesando...</h2>
+  </div>
+
+<script>
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyzpDCe_abY6qPBGhE7fPIZL8wjV5Fn7R4XBmhZxehKA5zDzrcyOIYbp8YdS6sAaw/exec';
+
+  async function procesarEscaneo() {
+    const params = new URLSearchParams(window.location.search);
+    const telefono = params.get('tel');
+
+    if (!telefono) {
+      mostrarError('QR inválido');
+      return;
+    }
+
+    try {
+      const resp = await fetch(SCRIPT_URL + '?accion=sumarPunto&telefono=' + telefono);
+      const data = await resp.json();
+
+      if (data.ok) {
+        const puntos = data.puntos;
+        const faltan = Math.max(10 - puntos, 0);
+        const pct = Math.min((puntos / 10) * 100, 100);
+
+        if (data.premio) {
+          document.getElementById('card').innerHTML = `
+            <div class="icono">🏆</div>
+            <h2 style="color:#F9A825">¡PARTIDO GRATIS!</h2>
+            <p>Este cliente llegó a <strong>10 puntos</strong> y ganó un partido gratis.</p>
+            <p style="color:#B71C1C;font-weight:bold">Autorizá el acceso gratuito.</p>
+            <button class="btn btn-verde" onclick="window.close()">✅ Listo, siguiente</button>
+          `;
+        } else {
+          document.getElementById('card').innerHTML = `
+            <div class="icono">✅</div>
+            <h2 style="color:#2E7D32">¡Punto sumado!</h2>
+            <div class="puntos">${puntos}</div>
+            <p>puntos acumulados — le faltan <strong>${faltan}</strong> para partido gratis</p>
+            <div class="barra-track"><div class="barra-fill" id="barra" style="width:0%"></div></div>
+            <div class="barra-labels"><span>0</span><span>5</span><span>10</span></div>
+            <button class="btn btn-verde" onclick="window.close()">✅ Listo, siguiente</button>
+          `;
+          setTimeout(() => {
+            document.getElementById('barra').style.width = pct + '%';
+          }, 100);
+        }
+
+      } else if (data.motivo === 'ya_registrado') {
+        document.getElementById('card').innerHTML = `
+          <div class="icono">⚠️</div>
+          <h2 style="color:#F57F17">Ya registrado hoy</h2>
+          <p>Este cliente ya sumó su punto hoy. No se puede registrar dos veces el mismo día.</p>
+          <button class="btn btn-verde" onclick="window.close()">← Volver</button>
+        `;
+      } else {
+        mostrarError(data.error || 'Error al procesar');
+      }
+
+    } catch(e) {
+      mostrarError('Error de conexión');
+    }
+  }
+
+  function mostrarError(msg) {
+    document.getElementById('card').innerHTML = `
+      <div class="icono">❌</div>
+      <h2 style="color:#B71C1C">Error</h2>
+      <p>${msg}</p>
+      <button class="btn btn-verde" onclick="window.close()">← Volver</button>
+    `;
+  }
+
+  procesarEscaneo();
+</script>
+</body>
+</html>
