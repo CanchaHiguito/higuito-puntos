@@ -31,17 +31,17 @@
     .btn-rojo:active { background: #8B0000; }
     .btn-verde { width: 100%; padding: 16px; background: #2E7D32; color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 8px; }
     .nota { font-size: 11px; color: #999; text-align: center; margin-top: 12px; line-height: 1.5; }
-    .cliente-info { background: #f5f5f5; border-left: 4px solid #B71C1C; padding: 12px; margin-bottom: 20px; border-radius: 4px; }
+    .cliente-info { background: #f5f5f5; border-left: 4px solid #B71C1C; padding: 12px; margin-bottom: 16px; border-radius: 4px; }
     .cliente-info h3 { font-size: 18px; color: #111; margin-bottom: 2px; }
     .cliente-info p  { font-size: 12px; color: #777; }
-    .puntos-display { text-align: center; margin-bottom: 16px; }
-    .puntos-numero  { font-size: 72px; font-weight: 900; color: #B71C1C; line-height: 1; }
+    .puntos-display { text-align: center; margin-bottom: 12px; }
+    .puntos-numero  { font-size: 64px; font-weight: 900; color: #B71C1C; line-height: 1; }
     .puntos-texto   { font-size: 13px; color: #777; margin-top: 4px; }
-    .barra-wrap   { margin-bottom: 20px; }
+    .barra-wrap   { margin-bottom: 12px; }
     .barra-track  { background: #e0e0e0; border-radius: 20px; height: 16px; overflow: hidden; margin-bottom: 6px; }
-    .barra-fill   { background: #2E7D32; height: 100%; border-radius: 20px; transition: width 0.5s ease; }
+    .barra-fill   { background: #2E7D32; height: 100%; border-radius: 20px; transition: width 1s ease; }
     .barra-labels { display: flex; justify-content: space-between; font-size: 11px; color: #999; }
-    .faltan        { text-align: center; font-size: 14px; color: #555; margin-bottom: 16px; }
+    .faltan        { text-align: center; font-size: 13px; color: #555; margin-bottom: 12px; }
     .faltan strong { color: #B71C1C; }
     .ya-badge        { text-align: center; padding: 20px 0; }
     .ya-badge .icono { font-size: 64px; margin-bottom: 16px; }
@@ -71,6 +71,13 @@
     .gracias-countdown span { font-weight: bold; color: #555; }
     .loading   { text-align: center; padding: 16px; color: #777; font-size: 14px; display: none; }
     .error-msg { background: #FFEBEE; border-radius: 8px; padding: 12px; font-size: 13px; color: #B71C1C; text-align: center; margin-top: 12px; display: none; }
+    .qr-wrap { text-align: center; margin: 8px 0; }
+    .qr-wrap img { width: 180px; height: 180px; border: 3px solid #B71C1C; border-radius: 12px; padding: 8px; background: #fff; }
+    .qr-nota { font-size: 12px; color: #777; text-align: center; margin-top: 6px; }
+    .punto-asignado { background: #E8F5E9; border: 2px solid #2E7D32; border-radius: 10px; padding: 14px; text-align: center; display: none; margin-top: 8px; }
+    .punto-asignado .icono { font-size: 32px; margin-bottom: 4px; }
+    .punto-asignado p { font-size: 14px; color: #2E7D32; font-weight: bold; }
+    .countdown-cierre { font-size: 12px; color: #aaa; margin-top: 6px; }
   </style>
 </head>
 <body>
@@ -83,7 +90,7 @@
 
   <div class="pantallas">
 
-    <!-- PANTALLA 1: Ingresar número -->
+    <!-- PANTALLA 1: Ingresar número (solo primera vez) -->
     <div class="pantalla activa" id="pantalla-numero">
       <div class="input-group">
         <label>Ingresá tu número de WhatsApp</label>
@@ -95,7 +102,7 @@
       <p class="nota">Ingresá tu número con código de país. Ej: 50688881111</p>
     </div>
 
-    <!-- PANTALLA 2: Cliente encontrado -->
+    <!-- PANTALLA 2: Cliente con QR integrado -->
     <div class="pantalla" id="pantalla-cliente">
       <div class="cliente-info">
         <h3 id="cliente-nombre">Juan</h3>
@@ -112,8 +119,19 @@
         <div class="barra-labels"><span>0</span><span>5</span><span>10</span></div>
       </div>
       <p class="faltan" id="faltan-texto">Te faltan <strong>10</strong> puntos para tu partido gratis</p>
-      <button class="btn-rojo" onclick="mostrarQRCliente()">📲 Mostrar mi QR al encargado</button>
-      <p class="nota">Mostrá tu QR al encargado para que registre tu punto.</p>
+
+      <!-- QR del cliente -->
+      <div class="qr-wrap" id="qr-wrap">
+        <img id="qr-cliente-imagen" src="" alt="Mi QR">
+        <p class="qr-nota">📲 Mostrá este QR al encargado</p>
+      </div>
+
+      <!-- Mensaje cuando ya se asignó el punto -->
+      <div class="punto-asignado" id="punto-asignado">
+        <div class="icono">✅</div>
+        <p>¡Punto registrado!</p>
+        <div class="countdown-cierre">Cerrando en <span id="cuenta-cierre">5</span> segundos...</div>
+      </div>
     </div>
 
     <!-- PANTALLA 3: Ya registrado hoy -->
@@ -151,22 +169,6 @@
       <div class="loading" id="loading-registro" style="display:none">Registrando...</div>
       <div class="error-msg" id="error-registro" style="display:none"></div>
       <p class="nota">🏆 Con 10 partidos jugados ganás uno GRATIS</p>
-    </div>
-
-    <!-- PANTALLA: Mi QR personal -->
-    <div class="pantalla" id="pantalla-qr-cliente">
-      <div class="cliente-info">
-        <h3 id="qr-cliente-nombre">Juan</h3>
-        <p id="qr-cliente-puntos">0 puntos acumulados</p>
-      </div>
-      <div style="text-align:center;margin:16px 0">
-        <p style="font-size:13px;color:#555;margin-bottom:16px">Mostrá este QR al encargado para sumar tu punto de hoy ⚽</p>
-        <div style="background:#fff;border:3px solid #B71C1C;border-radius:16px;padding:16px;display:inline-block">
-          <img id="qr-cliente-imagen" src="" alt="Mi QR" style="width:200px;height:200px;display:block">
-        </div>
-      </div>
-      <button class="btn-rojo" style="margin-top:16px" onclick="mostrarPantalla('pantalla-cliente')">← Volver a mis puntos</button>
-      <p class="nota">El encargado escaneará este QR para darte tu punto</p>
     </div>
 
     <!-- PANTALLA 4: Premio -->
@@ -213,11 +215,33 @@
   const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyzpDCe_abY6qPBGhE7fPIZL8wjV5Fn7R4XBmhZxehKA5zDzrcyOIYbp8YdS6sAaw/exec';
   let telefonoActual = '';
   let cuentaRegresivaInterval = null;
+  let pollingInterval = null;
+  let puntosAntes = 0;
 
   window.onload = function() {
     const telGuardado = localStorage.getItem('higuito_telefono');
-    if (telGuardado) document.getElementById('input-telefono').value = telGuardado;
+    if (telGuardado) {
+      telefonoActual = telGuardado;
+      cargarClienteDirecto(telGuardado);
+    }
   };
+
+  async function cargarClienteDirecto(telefono) {
+    document.getElementById('loading-verificar').style.display = 'block';
+    try {
+      const resp = await fetch(SCRIPT_URL + '?accion=verificar&telefono=' + telefono);
+      const data = await resp.json();
+      document.getElementById('loading-verificar').style.display = 'none';
+      if (data.encontrado) {
+        mostrarCliente(data);
+      } else {
+        mostrarPantalla('pantalla-numero');
+      }
+    } catch(e) {
+      document.getElementById('loading-verificar').style.display = 'none';
+      mostrarPantalla('pantalla-numero');
+    }
+  }
 
   function mostrarPantalla(id) {
     document.querySelectorAll('.pantalla').forEach(p => p.classList.remove('activa'));
@@ -261,6 +285,7 @@
   }
 
   function mostrarCliente(data) {
+    puntosAntes = parseInt(data.puntos) || 0;
     document.getElementById('cliente-nombre').textContent   = data.nombre;
     document.getElementById('cliente-telefono').textContent = telefonoActual;
     document.getElementById('puntos-numero').textContent    = data.puntos;
@@ -270,40 +295,86 @@
     document.getElementById('faltan-texto').innerHTML = faltan > 0
       ? 'Te faltan <strong>' + faltan + '</strong> punto' + (faltan > 1 ? 's' : '') + ' para tu partido gratis'
       : '¡Ya podés canjear tu partido gratis!';
+
+    // Verificar si ya registró punto hoy
+    const hoy = new Date().toLocaleDateString('es-CR');
+    const ultimoPunto = data.ultimoPunto ? data.ultimoPunto.substring(0, 10) : '';
+    const fechaUltimo = ultimoPunto ? new Date(ultimoPunto.split('/').reverse().join('-')).toLocaleDateString('es-CR') : '';
+
+    if (fechaUltimo === hoy) {
+      // Ya sumó punto hoy — ocultar QR
+      document.getElementById('qr-wrap').style.display = 'none';
+      document.getElementById('punto-asignado').style.display = 'block';
+      document.getElementById('punto-asignado').querySelector('p').textContent = '✅ Ya registraste tu punto hoy';
+      document.getElementById('cuenta-cierre').parentElement.style.display = 'none';
+    } else {
+      // Mostrar QR y empezar polling
+      document.getElementById('qr-wrap').style.display = 'block';
+      document.getElementById('punto-asignado').style.display = 'none';
+      generarQRCliente();
+      iniciarPolling();
+    }
+
     mostrarPantalla('pantalla-cliente');
   }
 
-  function mostrarQRCliente() {
-    const nombre = document.getElementById('cliente-nombre').textContent;
-    const puntos = document.getElementById('puntos-numero').textContent;
-    document.getElementById('qr-cliente-nombre').textContent = nombre;
-    document.getElementById('qr-cliente-puntos').textContent = puntos + ' puntos acumulados';
+  function generarQRCliente() {
     const qrData = 'https://canchahiguito.github.io/higuito-puntos/encargado-scan.html?tel=' + telefonoActual;
-    const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(qrData);
+    const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' + encodeURIComponent(qrData);
     document.getElementById('qr-cliente-imagen').src = qrUrl;
-    mostrarPantalla('pantalla-qr-cliente');
   }
 
-  function mostrarPantallaGracias(puntos) {
-    const nombre = document.getElementById('cliente-nombre').textContent.split(' ')[0];
+  function iniciarPolling() {
+    if (pollingInterval) clearInterval(pollingInterval);
+    pollingInterval = setInterval(async () => {
+      try {
+        const resp = await fetch(SCRIPT_URL + '?accion=verificar&telefono=' + telefonoActual);
+        const data = await resp.json();
+        if (data.encontrado) {
+          const puntosAhora = parseInt(data.puntos) || 0;
+          if (puntosAhora > puntosAntes) {
+            clearInterval(pollingInterval);
+            puntoDetectado(data);
+          }
+        }
+      } catch(e) {}
+    }, 3000);
+  }
+
+  function puntoDetectado(data) {
+    const puntos = parseInt(data.puntos) || 0;
+
+    // Si llegó a 10 puntos → premio
+    if (puntos >= 10) {
+      mostrarPantalla('pantalla-premio');
+      return;
+    }
+
+    // Actualizar puntos y barra
+    document.getElementById('puntos-numero').textContent = puntos;
+    const pct = Math.min((puntos / 10) * 100, 100);
+    document.getElementById('barra-fill').style.width = pct + '%';
     const faltan = Math.max(10 - puntos, 0);
-    document.getElementById('gracias-nombre').textContent     = '¡Gracias, ' + nombre + '!';
-    document.getElementById('gracias-puntos-num').textContent = puntos;
-    setTimeout(() => {
-      document.getElementById('gracias-barra-fill').style.width = Math.min((puntos / 10) * 100, 100) + '%';
-    }, 100);
-    document.getElementById('gracias-faltan-texto').innerHTML = faltan > 0
-      ? 'Te faltan <strong>' + faltan + '</strong> punto' + (faltan > 1 ? 's' : '') + ' para tu partido gratis 🏆'
+    document.getElementById('faltan-texto').innerHTML = faltan > 0
+      ? 'Te faltan <strong>' + faltan + '</strong> punto' + (faltan > 1 ? 's' : '') + ' para tu partido gratis'
       : '¡Ya podés canjear tu partido gratis!';
-    mostrarPantalla('pantalla-gracias');
+
+    // Ocultar QR y mostrar confirmación
+    document.getElementById('qr-wrap').style.display = 'none';
+    document.getElementById('punto-asignado').style.display = 'block';
+
+    // Cuenta regresiva y cierre
     let segundos = 5;
-    document.getElementById('cuenta-regresiva').textContent = segundos;
+    document.getElementById('cuenta-cierre').textContent = segundos;
     if (cuentaRegresivaInterval) clearInterval(cuentaRegresivaInterval);
     cuentaRegresivaInterval = setInterval(() => {
       segundos--;
-      const el = document.getElementById('cuenta-regresiva');
+      const el = document.getElementById('cuenta-cierre');
       if (el) el.textContent = segundos;
-      if (segundos <= 0) { clearInterval(cuentaRegresivaInterval); cerrarPWA(); }
+      if (segundos <= 0) {
+        clearInterval(cuentaRegresivaInterval);
+        cerrarPWA();
+      }
     }, 1000);
   }
 
@@ -349,17 +420,18 @@
       const data = await resp.json();
       document.getElementById('loading-registro').style.display = 'none';
       if (data.ok) {
+        localStorage.setItem('higuito_telefono', telefonoActual);
         document.getElementById('pantalla-registro').innerHTML = `
           <div style="text-align:center;padding:24px 16px">
             <div style="font-size:56px;margin-bottom:12px">🎉</div>
             <h3 style="color:#2E7D32;font-size:20px;margin-bottom:8px">¡Registro exitoso!</h3>
             <p style="color:#555;font-size:14px;line-height:1.7">
               Bienvenido <strong>${nombre}</strong>.<br>
-              Ya podés registrar tu primer punto.<br><br>
+              Ya podés mostrar tu QR al encargado.<br><br>
               🏆 Con 10 partidos jugados ganás uno GRATIS.
             </p>
             <button class="btn-verde" style="margin-top:16px" onclick="location.reload()">
-              Ir a mis puntos ⚽
+              Ver mi QR ⚽
             </button>
           </div>
         `;
