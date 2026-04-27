@@ -113,6 +113,7 @@
       </div>
       <p class="faltan" id="faltan-texto">Te faltan <strong>10</strong> puntos para tu partido gratis</p>
       <button class="btn-rojo" onclick="mostrarQRCliente()">📲 Mostrar mi QR al encargado</button>
+      <p class="nota">Mostrá tu QR al encargado para que registre tu punto.</p>
     </div>
 
     <!-- PANTALLA 3: Ya registrado hoy -->
@@ -269,15 +270,6 @@
     document.getElementById('faltan-texto').innerHTML = faltan > 0
       ? 'Te faltan <strong>' + faltan + '</strong> punto' + (faltan > 1 ? 's' : '') + ' para tu partido gratis'
       : '¡Ya podés canjear tu partido gratis!';
-    const hoy = new Date().toLocaleDateString('es-CR');
-    const ultimoPunto = data.ultimoPunto ? data.ultimoPunto.substring(0, 10) : '';
-    const fechaUltimo = ultimoPunto ? new Date(ultimoPunto.split('/').reverse().join('-')).toLocaleDateString('es-CR') : '';
-    const btn = document.getElementById('btn-punto');
-    if (fechaUltimo === hoy) {
-      btn.disabled = true; btn.textContent = '✅ Punto ya registrado hoy'; btn.style.background = '#2E7D32';
-    } else {
-      btn.disabled = false; btn.textContent = 'Registrar punto de hoy ⚽'; btn.style.background = '#B71C1C';
-    }
     mostrarPantalla('pantalla-cliente');
   }
 
@@ -290,35 +282,6 @@
     const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(qrData);
     document.getElementById('qr-cliente-imagen').src = qrUrl;
     mostrarPantalla('pantalla-qr-cliente');
-  }
-
-  async function registrarPunto() {
-    document.getElementById('loading-punto').style.display = 'block';
-    document.getElementById('error-punto').style.display   = 'none';
-    document.getElementById('btn-punto').disabled          = true;
-    try {
-      const resp = await fetch(SCRIPT_URL + '?accion=sumarPunto&telefono=' + telefonoActual);
-      const data = await resp.json();
-      document.getElementById('loading-punto').style.display = 'none';
-      document.getElementById('btn-punto').disabled          = false;
-      if (data.ok) {
-        if (data.premio) {
-          mostrarPantalla('pantalla-premio');
-        } else {
-          mostrarPantallaGracias(data.puntos);
-        }
-      } else if (data.motivo === 'ya_registrado') {
-        document.getElementById('ya-nombre').textContent = document.getElementById('cliente-nombre').textContent;
-        document.getElementById('ya-puntos').textContent = 'Puntos acumulados: ' + document.getElementById('puntos-numero').textContent;
-        mostrarPantalla('pantalla-ya-registrado');
-      } else {
-        mostrarError('error-punto', 'Error al registrar. Intentá de nuevo.');
-      }
-    } catch(e) {
-      document.getElementById('loading-punto').style.display = 'none';
-      document.getElementById('btn-punto').disabled = false;
-      mostrarError('error-punto', 'Error de conexión. Intentá de nuevo.');
-    }
   }
 
   function mostrarPantallaGracias(puntos) {
