@@ -29,4 +29,107 @@
     .qr-sub { font-size: 12px; color: #777; margin-bottom: 12px; }
     .qr-countdown { font-size: 13px; color: #B71C1C; font-weight: bold; margin-top: 8px; }
     .qr-expirado { background: #FFEBEE; border-radius: 8px; padding: 10px; font-size: 13px; color: #B71C1C; text-align: center; display: none; margin-top: 8px; }
-    .info-box { background: #E8F5E9; border-radius: 8px; padding: 12px; font-size: 12px; color: #2E7D32; margin-bottom: 16
+    .info-box { background: #E8F5E9; border-radius: 8px; padding: 12px; font-size: 12px; color: #2E7D32; margin-bottom: 16px; line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="header">
+      <h1>Centro Deportivo</h1>
+      <h2>HIGUITO</h2>
+      <p>Panel del encargado</p>
+    </div>
+
+    <div class="pin-box" id="pin-box">
+      <label>PIN de acceso</label>
+      <input type="password" id="pin-input" placeholder="••••" maxlength="4" oninput="verificarPin()">
+      <div class="error" id="error-pin">PIN incorrecto</div>
+    </div>
+
+    <div id="panel-control" style="display:none">
+      <div class="info-box">
+        📱 Generá un QR después de cada partido. El cliente lo escanea y tiene <strong>10 minutos</strong> para registrar su punto.
+      </div>
+
+      <button class="btn btn-generar" id="btn-generar" onclick="generarQR()">⚽ Generar QR nuevo</button>
+      <div class="loading" id="loading">Generando QR...</div>
+
+      <div class="qr-box" id="qr-box">
+        <div class="qr-titulo">📲 QR activo</div>
+        <div class="qr-sub">Mostrá este QR al cliente para que sume su punto</div>
+        <img id="qr-imagen" src="" alt="QR Code">
+        <div class="qr-countdown" id="qr-countdown">⏱️ Expira en: 10:00</div>
+        <div class="qr-expirado" id="qr-expirado">❌ Este QR ya expiró. Generá uno nuevo.</div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyzpDCe_abY6qPBGhE7fPIZL8wjV5Fn7R4XBmhZxehKA5zDzrcyOIYbp8YdS6sAaw/exec';
+  const PIN_CORRECTO = '1234';
+  let countdownInterval = null;
+  let expiraEn = null;
+
+  function verificarPin() {
+    const pin = document.getElementById('pin-input').value;
+    if (pin.length === 4) {
+      if (pin === PIN_CORRECTO) {
+        document.getElementById('pin-box').style.display = 'none';
+        document.getElementById('error-pin').style.display = 'none';
+        document.getElementById('panel-control').style.display = 'block';
+      } else {
+        document.getElementById('error-pin').style.display = 'block';
+        document.getElementById('pin-input').value = '';
+      }
+    }
+  }
+
+  async function generarQR() {
+    document.getElementById('btn-generar').disabled = true;
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('qr-box').style.display = 'none';
+    document.getElementById('qr-expirado').style.display = 'none';
+    if (countdownInterval) clearInterval(countdownInterval);
+
+    try {
+      const resp = await fetch(SCRIPT_URL + '?accion=obtenerQR');
+      const data = await resp.json();
+
+      if (data.ok) {
+        const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' + encodeURIComponent(data.url);
+        document.getElementById('qr-imagen').src = qrUrl;
+        document.getElementById('qr-box').style.display = 'block';
+
+        expiraEn = new Date().getTime() + (10 * 60 * 1000);
+        iniciarCountdown();
+      }
+    } catch(e) {
+      alert('Error al generar QR. Intentá de nuevo.');
+    }
+
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('btn-generar').disabled = false;
+  }
+
+  function iniciarCountdown() {
+    countdownInterval = setInterval(() => {
+      const ahora = new Date().getTime();
+      const restante = expiraEn - ahora;
+
+      if (restante <= 0) {
+        clearInterval(countdownInterval);
+        document.getElementById('qr-countdown').style.display = 'none';
+        document.getElementById('qr-expirado').style.display = 'block';
+        document.getElementById('qr-imagen').style.opacity = '0.3';
+        return;
+      }
+
+      const min = Math.floor(restante / 60000);
+      const seg = Math.floor((restante % 60000) / 1000);
+      document.getElementById('qr-countdown').textContent =
+        '⏱️ Expira en: ' + min + ':' + (seg < 10 ? '0' : '') + seg;
+    }, 1000);
+  }
+</script>
+</body>
+</html>
