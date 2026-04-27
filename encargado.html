@@ -18,22 +18,41 @@
     .pin-box input { width: 100%; padding: 14px; border: 2px solid #ddd; border-radius: 8px; font-size: 20px; text-align: center; letter-spacing: 4px; }
     .pin-box input:focus { outline: none; border-color: #B71C1C; }
     .error { background: #FFEBEE; border-radius: 8px; padding: 10px; font-size: 13px; color: #B71C1C; text-align: center; margin-bottom: 12px; display: none; }
-    .btn { width: 100%; padding: 18px; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 12px; }
-    .btn-generar { background: #B71C1C; color: #fff; font-size: 18px; }
+    .btn { width: 100%; padding: 18px; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; margin-bottom: 12px; }
+    .btn-generar { background: #B71C1C; color: #fff; }
     .btn-generar:active { background: #8B0000; }
     .btn:disabled { opacity: 0.5; cursor: not-allowed; }
     .loading { text-align: center; color: #777; font-size: 13px; padding: 8px; display: none; }
-    .qr-box { display: none; background: #f5f5f5; border-radius: 12px; padding: 20px; text-align: center; margin-top: 16px; }
-    .qr-box img { width: 220px; height: 220px; border-radius: 8px; margin-bottom: 12px; }
-    .qr-titulo { font-size: 15px; font-weight: bold; color: #333; margin-bottom: 4px; }
-    .qr-sub { font-size: 12px; color: #777; margin-bottom: 12px; }
-    .qr-countdown { font-size: 13px; color: #B71C1C; font-weight: bold; margin-top: 8px; }
-    .qr-expirado { background: #FFEBEE; border-radius: 8px; padding: 10px; font-size: 13px; color: #B71C1C; text-align: center; display: none; margin-top: 8px; }
     .info-box { background: #E8F5E9; border-radius: 8px; padding: 12px; font-size: 12px; color: #2E7D32; margin-bottom: 16px; line-height: 1.6; }
+
+    /* PANTALLA QR FULLSCREEN */
+    #pantalla-qr {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: #000;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      padding: 20px;
+    }
+    #pantalla-qr.activa { display: flex; }
+    .qr-header { color: #F9A825; font-size: 13px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+    .qr-titulo { color: #fff; font-size: 18px; font-weight: bold; margin-bottom: 4px; text-align: center; }
+    .qr-sub { color: #aaa; font-size: 12px; margin-bottom: 20px; text-align: center; }
+    .qr-imagen-wrap { background: #fff; border-radius: 16px; padding: 16px; margin-bottom: 20px; }
+    .qr-imagen-wrap img { width: 240px; height: 240px; display: block; }
+    .qr-countdown { color: #F9A825; font-size: 22px; font-weight: bold; margin-bottom: 8px; }
+    .qr-expirado-msg { color: #B71C1C; font-size: 14px; font-weight: bold; display: none; margin-bottom: 8px; }
+    .qr-toque { color: #555; font-size: 12px; margin-top: 24px; }
+    .btn-nuevo { background: #B71C1C; color: #fff; border: none; padding: 14px 28px; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 16px; display: none; }
   </style>
 </head>
 <body>
-  <div class="card">
+
+  <!-- PANEL PRINCIPAL -->
+  <div class="card" id="panel-principal">
     <div class="header">
       <h1>Centro Deportivo</h1>
       <h2>HIGUITO</h2>
@@ -50,18 +69,23 @@
       <div class="info-box">
         📱 Generá un QR después de cada partido. El cliente lo escanea y tiene <strong>10 minutos</strong> para registrar su punto.
       </div>
-
-      <button class="btn btn-generar" id="btn-generar" onclick="generarQR()">⚽ Generar QR nuevo</button>
+      <button class="btn btn-generar" id="btn-generar" onclick="generarQR()">⚽ Generar QR para partido</button>
       <div class="loading" id="loading">Generando QR...</div>
-
-      <div class="qr-box" id="qr-box">
-        <div class="qr-titulo">📲 QR activo</div>
-        <div class="qr-sub">Mostrá este QR al cliente para que sume su punto</div>
-        <img id="qr-imagen" src="" alt="QR Code">
-        <div class="qr-countdown" id="qr-countdown">⏱️ Expira en: 10:00</div>
-        <div class="qr-expirado" id="qr-expirado">❌ Este QR ya expiró. Generá uno nuevo.</div>
-      </div>
     </div>
+  </div>
+
+  <!-- PANTALLA QR FULLSCREEN -->
+  <div id="pantalla-qr" onclick="tocarPantalla()">
+    <div class="qr-header">Centro Deportivo Higuito</div>
+    <div class="qr-titulo">📲 Escaneá el QR</div>
+    <div class="qr-sub">Para registrar tu punto de hoy</div>
+    <div class="qr-imagen-wrap">
+      <img id="qr-imagen" src="" alt="QR Code">
+    </div>
+    <div class="qr-countdown" id="qr-countdown">⏱️ 10:00</div>
+    <div class="qr-expirado-msg" id="qr-expirado-msg">❌ QR expirado</div>
+    <button class="btn-nuevo" id="btn-nuevo" onclick="volverPanel(event)">⚽ Generar QR nuevo</button>
+    <div class="qr-toque" id="qr-toque">Tocá la pantalla para volver al panel</div>
   </div>
 
 <script>
@@ -69,6 +93,7 @@
   const PIN_CORRECTO = '1234';
   let countdownInterval = null;
   let expiraEn = null;
+  let qrActivo = false;
 
   function verificarPin() {
     const pin = document.getElementById('pin-input').value;
@@ -87,20 +112,25 @@
   async function generarQR() {
     document.getElementById('btn-generar').disabled = true;
     document.getElementById('loading').style.display = 'block';
-    document.getElementById('qr-box').style.display = 'none';
-    document.getElementById('qr-expirado').style.display = 'none';
-    if (countdownInterval) clearInterval(countdownInterval);
 
     try {
       const resp = await fetch(SCRIPT_URL + '?accion=obtenerQR');
       const data = await resp.json();
 
       if (data.ok) {
-        const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' + encodeURIComponent(data.url);
+        const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=' + encodeURIComponent(data.url);
         document.getElementById('qr-imagen').src = qrUrl;
-        document.getElementById('qr-box').style.display = 'block';
+        document.getElementById('qr-countdown').style.display = 'block';
+        document.getElementById('qr-expirado-msg').style.display = 'none';
+        document.getElementById('btn-nuevo').style.display = 'none';
+        document.getElementById('qr-toque').style.display = 'block';
+        document.getElementById('qr-imagen').style.opacity = '1';
+
+        // Mostrar pantalla QR
+        document.getElementById('pantalla-qr').classList.add('activa');
 
         expiraEn = new Date().getTime() + (10 * 60 * 1000);
+        qrActivo = true;
         iniciarCountdown();
       }
     } catch(e) {
@@ -112,14 +142,18 @@
   }
 
   function iniciarCountdown() {
+    if (countdownInterval) clearInterval(countdownInterval);
     countdownInterval = setInterval(() => {
       const ahora = new Date().getTime();
       const restante = expiraEn - ahora;
 
       if (restante <= 0) {
         clearInterval(countdownInterval);
+        qrActivo = false;
         document.getElementById('qr-countdown').style.display = 'none';
-        document.getElementById('qr-expirado').style.display = 'block';
+        document.getElementById('qr-expirado-msg').style.display = 'block';
+        document.getElementById('btn-nuevo').style.display = 'block';
+        document.getElementById('qr-toque').style.display = 'none';
         document.getElementById('qr-imagen').style.opacity = '0.3';
         return;
       }
@@ -127,8 +161,20 @@
       const min = Math.floor(restante / 60000);
       const seg = Math.floor((restante % 60000) / 1000);
       document.getElementById('qr-countdown').textContent =
-        '⏱️ Expira en: ' + min + ':' + (seg < 10 ? '0' : '') + seg;
+        '⏱️ ' + min + ':' + (seg < 10 ? '0' : '') + seg;
     }, 1000);
+  }
+
+  function tocarPantalla() {
+    // Solo vuelve al panel si el QR ya expiró
+    if (!qrActivo) {
+      volverPanel();
+    }
+  }
+
+  function volverPanel(event) {
+    if (event) event.stopPropagation();
+    document.getElementById('pantalla-qr').classList.remove('activa');
   }
 </script>
 </body>
