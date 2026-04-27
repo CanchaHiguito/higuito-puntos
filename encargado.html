@@ -13,148 +13,20 @@
     .header h1 { color: #F9A825; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; }
     .header h2 { color: #B71C1C; font-size: 22px; font-weight: 900; letter-spacing: 3px; }
     .header p { color: #fff; font-size: 11px; margin-top: 4px; opacity: 0.8; }
-    .estado-box { border-radius: 10px; padding: 16px; text-align: center; margin-bottom: 20px; }
-    .estado-box.abierta { background: #E8F5E9; border: 2px solid #2E7D32; }
-    .estado-box.cerrada { background: #FFEBEE; border: 2px solid #B71C1C; }
-    .estado-icono { font-size: 40px; margin-bottom: 8px; }
-    .estado-texto { font-size: 18px; font-weight: bold; }
-    .estado-box.abierta .estado-texto { color: #2E7D32; }
-    .estado-box.cerrada .estado-texto { color: #B71C1C; }
-    .estado-sub { font-size: 12px; color: #777; margin-top: 4px; }
-    .btn { width: 100%; padding: 18px; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; margin-bottom: 12px; }
-    .btn-abrir { background: #2E7D32; color: #fff; }
-    .btn-abrir:active { background: #1B5E20; }
-    .btn-cerrar { background: #B71C1C; color: #fff; }
-    .btn-cerrar:active { background: #8B0000; }
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-    .loading { text-align: center; color: #777; font-size: 13px; padding: 8px; display: none; }
     .pin-box { margin-bottom: 20px; }
     .pin-box label { display: block; font-size: 13px; color: #555; margin-bottom: 6px; font-weight: bold; }
     .pin-box input { width: 100%; padding: 14px; border: 2px solid #ddd; border-radius: 8px; font-size: 20px; text-align: center; letter-spacing: 4px; }
     .pin-box input:focus { outline: none; border-color: #B71C1C; }
     .error { background: #FFEBEE; border-radius: 8px; padding: 10px; font-size: 13px; color: #B71C1C; text-align: center; margin-bottom: 12px; display: none; }
-    .log { background: #f5f5f5; border-radius: 8px; padding: 12px; font-size: 12px; color: #555; margin-top: 12px; }
-    .log-titulo { font-weight: bold; margin-bottom: 6px; color: #333; }
-  </style>
-</head>
-<body>
-  <div class="card">
-    <div class="header">
-      <h1>Centro Deportivo</h1>
-      <h2>HIGUITO</h2>
-      <p>Panel del encargado</p>
-    </div>
-
-    <div class="pin-box" id="pin-box">
-      <label>PIN de acceso</label>
-      <input type="password" id="pin-input" placeholder="••••" maxlength="4" oninput="verificarPin()">
-      <div class="error" id="error-pin">PIN incorrecto</div>
-    </div>
-
-    <div id="panel-control" style="display:none">
-      <div class="estado-box cerrada" id="estado-box">
-        <div class="estado-icono" id="estado-icono">🔴</div>
-        <div class="estado-texto" id="estado-texto">Ventana cerrada</div>
-        <div class="estado-sub" id="estado-sub">Los clientes no pueden sumar puntos</div>
-      </div>
-
-      <button class="btn btn-abrir" id="btn-abrir" onclick="abrirVentana()">🟢 ABRIR ventana</button>
-      <button class="btn btn-cerrar" id="btn-cerrar" onclick="cerrarVentana()">🔴 CERRAR ventana</button>
-      <div class="loading" id="loading">Procesando...</div>
-
-      <div class="log">
-        <div class="log-titulo">📋 Último cambio</div>
-        <div id="log-texto">—</div>
-      </div>
-    </div>
-  </div>
-
-<script>
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyzpDCe_abY6qPBGhE7fPIZL8wjV5Fn7R4XBmhZxehKA5zDzrcyOIYbp8YdS6sAaw/exec';
-  const PIN_CORRECTO = '1234';
-
-  function verificarPin() {
-    const pin = document.getElementById('pin-input').value;
-    if (pin.length === 4) {
-      if (pin === PIN_CORRECTO) {
-        document.getElementById('pin-box').style.display = 'none';
-        document.getElementById('error-pin').style.display = 'none';
-        document.getElementById('panel-control').style.display = 'block';
-        consultarEstado();
-      } else {
-        document.getElementById('error-pin').style.display = 'block';
-        document.getElementById('pin-input').value = '';
-      }
-    }
-  }
-
-  async function consultarEstado() {
-    try {
-      const resp = await fetch(SCRIPT_URL + '?accion=estadoSistema');
-      const data = await resp.json();
-      actualizarEstado(data.ventana);
-    } catch(e) {
-      document.getElementById('estado-sub').textContent = 'Error al consultar estado';
-    }
-  }
-
-  function actualizarEstado(ventana) {
-    const box = document.getElementById('estado-box');
-    const icono = document.getElementById('estado-icono');
-    const texto = document.getElementById('estado-texto');
-    const sub = document.getElementById('estado-sub');
-    if (ventana === 'abierta') {
-      box.className = 'estado-box abierta';
-      icono.textContent = '🟢';
-      texto.textContent = 'Ventana abierta';
-      sub.textContent = 'Los clientes pueden sumar puntos ahora';
-    } else {
-      box.className = 'estado-box cerrada';
-      icono.textContent = '🔴';
-      texto.textContent = 'Ventana cerrada';
-      sub.textContent = 'Los clientes no pueden sumar puntos';
-    }
-  }
-
-  async function abrirVentana() {
-    document.getElementById('loading').style.display = 'block';
-    document.getElementById('btn-abrir').disabled = true;
-    document.getElementById('btn-cerrar').disabled = true;
-    try {
-      const resp = await fetch(SCRIPT_URL + '?accion=abrirVentana');
-      const data = await resp.json();
-      if (data.ok) {
-        actualizarEstado('abierta');
-        const hora = new Date().toLocaleTimeString('es-CR');
-        document.getElementById('log-texto').textContent = '✅ Abierta a las ' + hora;
-      }
-    } catch(e) {
-      document.getElementById('log-texto').textContent = '❌ Error al abrir';
-    }
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('btn-abrir').disabled = false;
-    document.getElementById('btn-cerrar').disabled = false;
-  }
-
-  async function cerrarVentana() {
-    document.getElementById('loading').style.display = 'block';
-    document.getElementById('btn-abrir').disabled = true;
-    document.getElementById('btn-cerrar').disabled = true;
-    try {
-      const resp = await fetch(SCRIPT_URL + '?accion=cerrarVentana');
-      const data = await resp.json();
-      if (data.ok) {
-        actualizarEstado('cerrada');
-        const hora = new Date().toLocaleTimeString('es-CR');
-        document.getElementById('log-texto').textContent = '🔴 Cerrada a las ' + hora;
-      }
-    } catch(e) {
-      document.getElementById('log-texto').textContent = '❌ Error al cerrar';
-    }
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('btn-abrir').disabled = false;
-    document.getElementById('btn-cerrar').disabled = false;
-  }
-</script>
-</body>
-</html>
+    .btn { width: 100%; padding: 18px; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 12px; }
+    .btn-generar { background: #B71C1C; color: #fff; font-size: 18px; }
+    .btn-generar:active { background: #8B0000; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .loading { text-align: center; color: #777; font-size: 13px; padding: 8px; display: none; }
+    .qr-box { display: none; background: #f5f5f5; border-radius: 12px; padding: 20px; text-align: center; margin-top: 16px; }
+    .qr-box img { width: 220px; height: 220px; border-radius: 8px; margin-bottom: 12px; }
+    .qr-titulo { font-size: 15px; font-weight: bold; color: #333; margin-bottom: 4px; }
+    .qr-sub { font-size: 12px; color: #777; margin-bottom: 12px; }
+    .qr-countdown { font-size: 13px; color: #B71C1C; font-weight: bold; margin-top: 8px; }
+    .qr-expirado { background: #FFEBEE; border-radius: 8px; padding: 10px; font-size: 13px; color: #B71C1C; text-align: center; display: none; margin-top: 8px; }
+    .info-box { background: #E8F5E9; border-radius: 8px; padding: 12px; font-size: 12px; color: #2E7D32; margin-bottom: 16
