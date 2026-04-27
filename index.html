@@ -274,7 +274,8 @@
         localStorage.setItem('higuito_telefono', telefono);
         mostrarCliente(data);
       } else {
-        mostrarError('error-verificar', 'Número no registrado. Te llegará un mensaje por WhatsApp para registrarte.');
+        telefonoActual = telefono;
+mostrarPantalla('pantalla-registro');
       }
     } catch(e) {
       document.getElementById('loading-verificar').style.display = 'none';
