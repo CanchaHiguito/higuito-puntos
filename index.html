@@ -412,7 +412,48 @@ mostrarPantalla('pantalla-registro');
       alert('Error al canjear. Mostrá la pantalla al encargado de todas formas.');
     }
   }
+async function registrarCliente() {
+    const nombre = document.getElementById('reg-nombre').value.trim();
+    const cedula = document.getElementById('reg-cedula').value.trim();
+    const fecha = document.getElementById('reg-fecha').value.trim();
 
+    if (!nombre) { mostrarError('error-registro', 'Ingresá tu nombre completo.'); return; }
+    if (!cedula) { mostrarError('error-registro', 'Ingresá tu número de cédula.'); return; }
+    if (!fecha) { mostrarError('error-registro', 'Ingresá tu fecha de nacimiento.'); return; }
+
+    document.getElementById('loading-registro').style.display = 'block';
+    document.getElementById('error-registro').style.display = 'none';
+
+    try {
+      const resp = await fetch(SCRIPT_URL + '?accion=registrarCliente&telefono=' + telefonoActual + '&nombre=' + encodeURIComponent(nombre) + '&cedula=' + encodeURIComponent(cedula) + '&fechaNacimiento=' + encodeURIComponent(fecha));
+      const data = await resp.json();
+
+      document.getElementById('loading-registro').style.display = 'none';
+
+      if (data.ok) {
+        // Mostrar pantalla de éxito
+        document.getElementById('pantalla-registro').innerHTML = `
+          <div style="text-align:center;padding:24px 16px">
+            <div style="font-size:56px;margin-bottom:12px">🎉</div>
+            <h3 style="color:#2E7D32;font-size:20px;margin-bottom:8px">¡Registro exitoso!</h3>
+            <p style="color:#555;font-size:14px;line-height:1.7">
+              Bienvenido <strong>${nombre}</strong>.<br>
+              Ya podés registrar tu primer punto.<br><br>
+              🏆 Con 10 partidos jugados ganás uno GRATIS.
+            </p>
+            <button class="btn-verde" style="margin-top:16px" onclick="location.reload()">
+              Ir a mis puntos ⚽
+            </button>
+          </div>
+        `;
+      } else {
+        mostrarError('error-registro', data.error || 'Error al registrar. Intentá de nuevo.');
+      }
+    } catch(e) {
+      document.getElementById('loading-registro').style.display = 'none';
+      mostrarError('error-registro', 'Error de conexión. Intentá de nuevo.');
+    }
+  }
   function mostrarError(id, msg) {
     const el = document.getElementById(id);
     el.textContent   = msg;
