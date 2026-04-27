@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Escáner — Higuito</title>
+  <meta name="theme-color" content="#000000">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background: #000; min-height: 100vh; display: flex; flex-direction: column; }
+    .header { background: #000; padding: 16px; text-align: center; border-bottom: 3px solid #F9A825; flex-shrink: 0; }
+    .header h1 { color: #F9A825; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; }
+    .header h2 { color: #B71C1C; font-size: 20px; font-weight: 900; letter-spacing: 3px; }
+    .header p { color: #fff; font-size: 11px; opacity: 0.8; }
+    .camara-wrap { position: relative; width: 100%; flex: 1; overflow: hidden; }
+    #video { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }
+    .scan-box { width: 220px; height: 220px; border: 3px solid #F9A825; border-radius: 16px; position: relative; }
+    .scan-line { position: absolute; top: 0; left: 0; right: 0; height: 3px; background: #F9A825; animation: scan 2s linear infinite; opacity: 0.8; }
+    @keyframes scan { 0% { top: 0; } 100% { top: 100%; } }
+    .scan-texto { color: #fff; font-size: 13px; margin-top: 16px; text-align: center; text-shadow: 0 1px 4px rgba(0,0,0,0.8); }
+    .resultado { position: absolute; bottom: 0; left: 0; right: 0; padding: 20px; background: rgba(0,0,0,0.85); display: none; }
+    .resultado.ok { background: rgba(46,125,50,0.95); }
+    .resultado.error { background: rgba(183,28,28,0.95); }
+    .resultado.ya { background: rgba(245,127,23,0.95); }
+    .resultado h3 { color: #fff; font-size: 18px; font-weight: 900; margin-bottom: 4px; }
+    .resultado p { color: rgba(255,255,255,0.9); font-size: 13px; margin-bottom: 12px; }
+    .resultado .puntos-big { font-size: 48px; font-weight: 900; color: #fff; line-height: 1; margin-bottom: 4px; }
+    .btn-siguiente { width: 100%; padding: 14px; background: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; color: #2E7D32; }
+    .pin-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; z-index: 100; }
+    .pin-card { background: #fff; border-radius: 16px; padding: 28px 24px; width: 100%; max-width: 340px; text-align: center; }
+    .pin-card h2 { font-size: 20px; font-weight: 900; color: #111; margin-bottom: 4px; }
+    .pin-card p { font-size: 13px; color: #777; margin-bottom: 16px; }
+    .pin-input { width: 100%; padding: 16px; border: 2px solid #ddd; border-radius: 8px; font-size: 28px; text-align: center; letter-spacing: 8px; margin-bottom: 8px; }
+    .pin-input:focus { outline: none; border-color: #B71C1C; }
+    .pin-error { color: #B71C1C; font-size: 13px; display: none; margin-bottom: 8px; }
+    .no-camara { color: #fff; text-align: center; padding: 32px 20px; font-size: 14px; }
+  </style>
+</head>
+<body>
+
+  <!-- PIN OVERLAY -->
+  <div class="pin-overlay" id="pin-overlay">
+    <div class="pin-card">
+      <div style="font-size:40px;margin-bottom:12px">⚽</div>
+      <h2>Panel Encargado</h2>
+      <p>Centro Deportivo Higuito</p>
+      <input type="password" class="pin-input" id="pin-input" placeholder="••••" maxlength="4" oninput="verificarPin()">
+      <div class="pin-error" id="pin-error">PIN incorrecto. Intentá de nuevo.</div>
+    </div>
+  </div>
+
+  <!-- ESCÁNER -->
+  <div class="header">
+    <h1>Centro Deportivo</h1>
+    <h2>HIGUITO</h2>
+    <p>Escáner de puntos</p>
+  </div>
+
+  <div class="camara-wrap">
+    <video id="video" autoplay playsinline muted></video>
+    <div class="overlay">
+      <div class="scan-box">
+        <div class="scan-line"></div>
+      </div>
+      <p class="scan-texto">Apuntá al QR del cliente</p>
+    </div>
+    <div class="resultado" id="resultado">
+      <h3 id="res-titulo">...</h3>
+      <div class="puntos-big" id="res-puntos" style="display:none"></div>
+      <p id="res-texto">...</p>
+      <button class="btn-siguiente" onclick="siguienteEscaneo()">✅ Listo — Siguiente cliente</button>
+    </div>
+  </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.min.js"></script>
+<script>
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyzpDCe_abY6qPBGhE7fPIZL8wjV5Fn7R4XBmhZxehKA5zDzrcyOIYbp8YdS6sAaw/exec';
+  const PIN_CORRECTO = '1234';
+  let escaneando = true;
+  let procesando = false;
+
+  function verificarPin() {
+    const pin = document.getElementById('pin-input').value;
+    if (pin.length === 4) {
+      if (pin === PIN_CORRECTO) {
+        document.getElementById('pin-overlay').style.display = 'none';
+        iniciarCamara();
+      } else {
+        document.getElementById('pin-error').style.display = 'block';
+        document.getElementById('pin-input').value = '';
+      }
+    }
+  }
+
+  async function iniciarCamara() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' }
+      });
+      const video = document.getElementById('video');
+      video.srcObject = stream;
+      video.play();
+      requestAnimationFrame(escanearFrame);
+    } catch(e) {
+      document.querySelector('.camara-wrap').innerHTML = `
+        <div class="no-camara">
+          <div style="font-size:48px;margin-bottom:16px">📷</div>
+          <p>No se pudo acceder a la cámara.<br>Permitá el acceso en la configuración del navegador.</p>
+        </div>`;
+    }
+  }
+
+  function escanearFrame() {
+    if (!escaneando || procesando) {
+      requestAnimationFrame(escanearFrame);
+      return;
+    }
+    const video = document.getElementById('video');
+    if (video.readyState !== video.HAVE_ENOUGH_DATA) {
+      requestAnimationFrame(escanearFrame);
+      return;
+    }
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const code = jsQR(imageData.data, imageData.width, imageData.height);
+    if (code) {
+      const url = code.data;
+      const match = url.match(/[?&]tel=([^&]+)/);
+      if (match) {
+        procesando = true;
+        sumarPunto(match[1]);
+      }
+    }
+    requestAnimationFrame(escanearFrame);
+  }
+
+  async function sumarPunto(telefono) {
+    try {
+      const resp = await fetch(SCRIPT_URL + '?accion=sumarPunto&telefono=' + telefono);
+      const data = await resp.json();
+      const res = document.getElementById('resultado');
+
+      if (data.ok) {
+        if (data.premio) {
+          res.className = 'resultado ok';
+          document.getElementById('res-titulo').textContent = '🏆 ¡PARTIDO GRATIS!';
+          document.getElementById('res-puntos').style.display = 'none';
+          document.getElementById('res-texto').textContent = 'Este cliente llegó a 10 puntos. Autorizá el acceso gratuito.';
+        } else {
+          res.className = 'resultado ok';
+          document.getElementById('res-titulo').textContent = '✅ ¡Punto sumado!';
+          document.getElementById('res-puntos').style.display = 'block';
+          document.getElementById('res-puntos').textContent = data.puntos;
+          document.getElementById('res-texto').textContent = 'Le faltan ' + Math.max(10 - data.puntos, 0) + ' puntos para partido gratis';
+        }
+      } else if (data.motivo === 'ya_registrado') {
+        res.className = 'resultado ya';
+        document.getElementById('res-titulo').textContent = '⚠️ Ya registrado hoy';
+        document.getElementById('res-puntos').style.display = 'none';
+        document.getElementById('res-texto').textContent = 'Este cliente ya sumó su punto hoy.';
+      } else {
+        res.className = 'resultado error';
+        document.getElementById('res-titulo').textContent = '❌ Error';
+        document.getElementById('res-puntos').style.display = 'none';
+        document.getElementById('res-texto').textContent = data.error || 'No se pudo procesar.';
+      }
+      res.style.display = 'block';
+    } catch(e) {
+      const res = document.getElementById('resultado');
+      res.className = 'resultado error';
+      document.getElementById('res-titulo').textContent = '❌ Error de conexión';
+      document.getElementById('res-puntos').style.display = 'none';
+      document.getElementById('res-texto').textContent = 'Intentá de nuevo.';
+      res.style.display = 'block';
+      procesando = false;
+    }
+  }
+
+  function siguienteEscaneo() {
+    document.getElementById('resultado').style.display = 'none';
+    document.getElementById('resultado').className = 'resultado';
+    procesando = false;
+  }
+</script>
+</body>
+</html>
