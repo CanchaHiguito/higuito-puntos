@@ -190,7 +190,29 @@
         <p id="ya-puntos">Puntos acumulados: 0</p>
       </div>
     </div>
-
+<!-- PANTALLA: Registro nuevo cliente -->
+<div class="body" id="pantalla-registro" style="display:none">
+  <div class="cliente-info" style="border-left: 4px solid #2E7D32;">
+    <h3 style="color:#2E7D32">📝 Registro en la promo</h3>
+    <p>Completá tus datos para participar</p>
+  </div>
+  <div class="input-group" style="margin-top:16px">
+    <label>Nombre completo</label>
+    <input type="text" id="reg-nombre" placeholder="Ej: Juan Pérez">
+  </div>
+  <div class="input-group">
+    <label>Número de cédula</label>
+    <input type="text" id="reg-cedula" placeholder="Ej: 110210948">
+  </div>
+  <div class="input-group">
+    <label>Fecha de nacimiento</label>
+    <input type="text" id="reg-fecha" placeholder="DD/MM/AAAA">
+  </div>
+  <button class="btn-rojo" onclick="registrarCliente()">Registrarme ⚽</button>
+  <div class="loading" id="loading-registro" style="display:none">Registrando...</div>
+  <div class="error-msg" id="error-registro" style="display:none"></div>
+  <p class="nota">🏆 Con 10 partidos jugados ganás uno GRATIS</p>
+</div>
     <!-- PANTALLA 4: Premio -->
     <div id="pantalla-premio">
       <div class="premio-header">
