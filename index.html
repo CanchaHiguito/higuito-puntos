@@ -78,6 +78,13 @@
     .punto-asignado .icono { font-size: 32px; margin-bottom: 4px; }
     .punto-asignado p { font-size: 14px; color: #2E7D32; font-weight: bold; }
     .countdown-cierre { font-size: 12px; color: #aaa; margin-top: 6px; }
+    .req-box { background: #fff; border-radius: 16px; padding: 28px 20px; }
+    .req-box h3 { font-size: 20px; font-weight: 900; color: #111; margin-bottom: 8px; text-align: center; }
+    .req-box p { font-size: 13px; color: #555; text-align: center; margin-bottom: 20px; line-height: 1.6; }
+    .req-paso { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 16px; background: #f5f5f5; border-radius: 10px; padding: 14px; }
+    .req-paso .num { background: #B71C1C; color: #fff; font-size: 14px; font-weight: bold; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .req-paso .texto { font-size: 13px; color: #333; line-height: 1.5; }
+    .req-paso .texto strong { color: #111; }
   </style>
 </head>
 <body>
@@ -90,8 +97,33 @@
 
   <div class="pantallas">
 
-    <!-- PANTALLA 1: Ingresar número (solo primera vez) -->
-    <div class="pantalla activa" id="pantalla-numero">
+    <!-- PANTALLA: Requisitos -->
+    <div class="pantalla" id="pantalla-requisitos">
+      <div class="req-box">
+        <div style="font-size:48px;text-align:center;margin-bottom:12px">⚽</div>
+        <h3>Para participar en la promo</h3>
+        <p>Necesitás completar estos 2 pasos para acceder al sistema de puntos.</p>
+        <div class="req-paso">
+          <div class="num">1</div>
+          <div class="texto">
+            <strong>Instalá la app en tu celular</strong><br>
+            Tocá los 3 puntitos del navegador → "Agregar a pantalla de inicio" o "Instalar app"
+          </div>
+        </div>
+        <div class="req-paso">
+          <div class="num">2</div>
+          <div class="texto">
+            <strong>Aceptá las notificaciones</strong><br>
+            Cuando aparezca el aviso, tocá "Permitir" para recibir promos exclusivas
+          </div>
+        </div>
+        <button class="btn-rojo" onclick="intentarEntrar()">Ya lo hice — Entrar ⚽</button>
+        <p class="nota" style="margin-top:12px">Una vez instalada, abrí la app desde el ícono en tu pantalla de inicio</p>
+      </div>
+    </div>
+
+    <!-- PANTALLA 1: Ingresar número -->
+    <div class="pantalla" id="pantalla-numero">
       <div class="input-group">
         <label>Ingresá tu número de WhatsApp</label>
         <input type="tel" id="input-telefono" placeholder="506XXXXXXXX" maxlength="11">
@@ -119,14 +151,10 @@
         <div class="barra-labels"><span>0</span><span>5</span><span>10</span></div>
       </div>
       <p class="faltan" id="faltan-texto">Te faltan <strong>10</strong> puntos para tu partido gratis</p>
-
-      <!-- QR del cliente -->
       <div class="qr-wrap" id="qr-wrap">
         <img id="qr-cliente-imagen" src="" alt="Mi QR">
         <p class="qr-nota">📲 Mostrá este QR al encargado</p>
       </div>
-
-      <!-- Mensaje cuando ya se asignó el punto -->
       <div class="punto-asignado" id="punto-asignado">
         <div class="icono">✅</div>
         <p>¡Punto registrado!</p>
@@ -218,35 +246,77 @@
   let pollingInterval = null;
   let puntosAntes = 0;
 
-  window.onload = function() {
+  function estaInstalada() {
+    return window.matchMedia('(display-mode: standalone)').matches ||
+           window.navigator.standalone === true;
+  }
+
+  async function pedirNotificaciones() {
+    if (!('Notification' in window)) return false;
+    if (Notification.permission === 'granted') return true;
+    if (Notification.permission === 'denied') return false;
+    const permiso = await Notification.requestPermission();
+    return permiso === 'granted';
+  }
+
+  async function intentarEntrar() {
+    const instalada = estaInstalada();
+    if (!instalada) {
+      mostrarPantalla('pantalla-requisitos');
+      return;
+    }
+    const notif = await pedirNotificaciones();
+    if (notif) {
+      localStorage.setItem('higuito_requisitos', 'ok');
+      iniciarApp();
+    } else {
+      mostrarPantalla('pantalla-requisitos');
+    }
+  }
+
+  function iniciarApp() {
     const telGuardado = localStorage.getItem('higuito_telefono');
     if (telGuardado) {
       telefonoActual = telGuardado;
-      // Ocultar pantalla número y mostrar carga
-      document.getElementById('pantalla-numero').style.display = 'none';
-      document.querySelector('.pantallas').innerHTML += `
-        <div id="pantalla-cargando" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100%;padding:32px 20px;text-align:center;">
-          <div style="font-size:48px;margin-bottom:16px">⚽</div>
-          <p style="color:#777;font-size:14px">Cargando tus puntos...</p>
-        </div>`;
       cargarClienteDirecto(telGuardado);
+    } else {
+      mostrarPantalla('pantalla-numero');
+    }
+  }
+
+  window.onload = async function() {
+    const instalada = estaInstalada();
+    if (instalada) {
+      const notif = await pedirNotificaciones();
+      if (notif) {
+        localStorage.setItem('higuito_requisitos', 'ok');
+        iniciarApp();
+      } else {
+        mostrarPantalla('pantalla-requisitos');
+      }
+    } else {
+      mostrarPantalla('pantalla-requisitos');
     }
   };
 
   async function cargarClienteDirecto(telefono) {
-    document.getElementById('loading-verificar').style.display = 'block';
+    document.querySelector('.pantallas').innerHTML = `
+      <div id="pantalla-cargando" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100%;padding:32px 20px;text-align:center;background:#fff;">
+        <div style="font-size:48px;margin-bottom:16px">⚽</div>
+        <p style="color:#777;font-size:14px">Cargando tus puntos...</p>
+      </div>`;
     try {
       const resp = await fetch(SCRIPT_URL + '?accion=verificar&telefono=' + telefono);
       const data = await resp.json();
-      document.getElementById('loading-verificar').style.display = 'none';
       if (data.encontrado) {
-        mostrarCliente(data);
+        location.reload();
       } else {
-        mostrarPantalla('pantalla-numero');
+        localStorage.removeItem('higuito_telefono');
+        location.reload();
       }
     } catch(e) {
-      document.getElementById('loading-verificar').style.display = 'none';
-      mostrarPantalla('pantalla-numero');
+      localStorage.removeItem('higuito_telefono');
+      location.reload();
     }
   }
 
@@ -257,6 +327,7 @@
     document.getElementById('pantalla-gracias').classList.remove('activa');
     document.getElementById('pantalla-gracias').style.display = 'none';
     const el = document.getElementById(id);
+    if (!el) return;
     if (el.classList.contains('pantalla')) {
       el.classList.add('activa');
     } else {
@@ -302,26 +373,20 @@
     document.getElementById('faltan-texto').innerHTML = faltan > 0
       ? 'Te faltan <strong>' + faltan + '</strong> punto' + (faltan > 1 ? 's' : '') + ' para tu partido gratis'
       : '¡Ya podés canjear tu partido gratis!';
-
-    // Verificar si ya registró punto hoy
     const hoy = new Date().toLocaleDateString('es-CR');
     const ultimoPunto = data.ultimoPunto ? data.ultimoPunto.substring(0, 10) : '';
     const fechaUltimo = ultimoPunto ? new Date(ultimoPunto.split('/').reverse().join('-')).toLocaleDateString('es-CR') : '';
-
     if (fechaUltimo === hoy) {
-      // Ya sumó punto hoy — ocultar QR
       document.getElementById('qr-wrap').style.display = 'none';
       document.getElementById('punto-asignado').style.display = 'block';
       document.getElementById('punto-asignado').querySelector('p').textContent = '✅ Ya registraste tu punto hoy';
       document.getElementById('cuenta-cierre').parentElement.style.display = 'none';
     } else {
-      // Mostrar QR y empezar polling
       document.getElementById('qr-wrap').style.display = 'block';
       document.getElementById('punto-asignado').style.display = 'none';
       generarQRCliente();
       iniciarPolling();
     }
-
     mostrarPantalla('pantalla-cliente');
   }
 
@@ -350,14 +415,7 @@
 
   function puntoDetectado(data) {
     const puntos = parseInt(data.puntos) || 0;
-
-    // Si llegó a 10 puntos → premio
-    if (puntos >= 10) {
-      mostrarPantalla('pantalla-premio');
-      return;
-    }
-
-    // Actualizar puntos y barra
+    if (puntos >= 10) { mostrarPantalla('pantalla-premio'); return; }
     document.getElementById('puntos-numero').textContent = puntos;
     const pct = Math.min((puntos / 10) * 100, 100);
     document.getElementById('barra-fill').style.width = pct + '%';
@@ -365,12 +423,8 @@
     document.getElementById('faltan-texto').innerHTML = faltan > 0
       ? 'Te faltan <strong>' + faltan + '</strong> punto' + (faltan > 1 ? 's' : '') + ' para tu partido gratis'
       : '¡Ya podés canjear tu partido gratis!';
-
-    // Ocultar QR y mostrar confirmación
     document.getElementById('qr-wrap').style.display = 'none';
     document.getElementById('punto-asignado').style.display = 'block';
-
-    // Cuenta regresiva y cierre
     let segundos = 5;
     document.getElementById('cuenta-cierre').textContent = segundos;
     if (cuentaRegresivaInterval) clearInterval(cuentaRegresivaInterval);
@@ -378,10 +432,7 @@
       segundos--;
       const el = document.getElementById('cuenta-cierre');
       if (el) el.textContent = segundos;
-      if (segundos <= 0) {
-        clearInterval(cuentaRegresivaInterval);
-        cerrarPWA();
-      }
+      if (segundos <= 0) { clearInterval(cuentaRegresivaInterval); cerrarPWA(); }
     }, 1000);
   }
 
