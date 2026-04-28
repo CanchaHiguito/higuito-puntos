@@ -102,23 +102,23 @@
       <div class="req-box">
         <div style="font-size:48px;text-align:center;margin-bottom:12px">⚽</div>
         <h3>Para participar en la promo</h3>
-        <p>Necesitás completar estos 2 pasos para acceder al sistema de puntos.</p>
+        <p>Instalá la app en tu celular para acceder al sistema de puntos y recibir promos exclusivas.</p>
         <div class="req-paso">
           <div class="num">1</div>
           <div class="texto">
-            <strong>Instalá la app en tu celular</strong><br>
-            Tocá los 3 puntitos del navegador → "Agregar a pantalla de inicio" o "Instalar app"
+            <strong>Instalá la app</strong><br>
+            Apretá el botón de abajo y luego tocá "Instalar" cuando aparezca el aviso
           </div>
         </div>
         <div class="req-paso">
           <div class="num">2</div>
           <div class="texto">
             <strong>Aceptá las notificaciones</strong><br>
-            Cuando aparezca el aviso, tocá "Permitir" para recibir promos exclusivas
+            Tocá "Permitir" para recibir promos y avisos exclusivos
           </div>
         </div>
-        <button class="btn-rojo" onclick="intentarEntrar()">Ya lo hice — Entrar ⚽</button>
-        <p class="nota" style="margin-top:12px">Una vez instalada, abrí la app desde el ícono en tu pantalla de inicio</p>
+        <button class="btn-rojo" id="btn-instalar" onclick="intentarEntrar()">📲 Instalar app y entrar ⚽</button>
+        <p class="nota" style="margin-top:12px">Si ya la instalaste, abrila desde el ícono en tu pantalla de inicio</p>
       </div>
     </div>
 
@@ -245,6 +245,14 @@
   let cuentaRegresivaInterval = null;
   let pollingInterval = null;
   let puntosAntes = 0;
+  let deferredPrompt = null;
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    const btn = document.getElementById('btn-instalar');
+    if (btn) btn.textContent = '📲 Instalar app y entrar ⚽';
+  });
 
   function estaInstalada() {
     return window.matchMedia('(display-mode: standalone)').matches ||
@@ -262,7 +270,20 @@
   async function intentarEntrar() {
     const instalada = estaInstalada();
     if (!instalada) {
-      mostrarPantalla('pantalla-requisitos');
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        deferredPrompt = null;
+        if (outcome === 'accepted') {
+          const btn = document.getElementById('btn-instalar');
+          if (btn) { btn.textContent = '⏳ Instalando...'; btn.disabled = true; }
+          setTimeout(() => location.reload(), 2000);
+        }
+      } else {
+        // No hay prompt — instrucciones manuales
+        const paso1 = document.querySelector('.req-paso .texto');
+        if (paso1) paso1.innerHTML = '<strong>Instalá la app manualmente</strong><br>Tocá los 3 puntitos del navegador → "Agregar a pantalla de inicio" o "Instalar app"';
+      }
       return;
     }
     const notif = await pedirNotificaciones();
