@@ -254,9 +254,16 @@
     if (btn) btn.textContent = '📲 Instalar app y entrar ⚽';
   });
 
+  window.addEventListener('appinstalled', () => {
+    localStorage.setItem('higuito_instalada', 'ok');
+    deferredPrompt = null;
+  });
+
   function estaInstalada() {
     return window.matchMedia('(display-mode: standalone)').matches ||
-           window.navigator.standalone === true;
+           window.navigator.standalone === true ||
+           document.referrer.includes('android-app://') ||
+           localStorage.getItem('higuito_instalada') === 'ok';
   }
 
   async function pedirNotificaciones() {
@@ -280,7 +287,6 @@
           setTimeout(() => location.reload(), 2000);
         }
       } else {
-        // No hay prompt — instrucciones manuales
         const paso1 = document.querySelector('.req-paso .texto');
         if (paso1) paso1.innerHTML = '<strong>Instalá la app manualmente</strong><br>Tocá los 3 puntitos del navegador → "Agregar a pantalla de inicio" o "Instalar app"';
       }
@@ -528,7 +534,7 @@
     el.textContent   = msg;
     el.style.display = 'block';
   }
-  // Registrar Service Worker
+
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('/higuito-puntos/sw.js')
