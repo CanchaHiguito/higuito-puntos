@@ -21,8 +21,6 @@
     .pantalla.activa { display: flex; flex-direction: column; justify-content: center; }
     #pantalla-premio { display: none; min-height: 100%; flex-direction: column; }
     #pantalla-premio.activa { display: flex; }
-    #pantalla-gracias { display: none; min-height: 100%; flex-direction: column; justify-content: center; }
-    #pantalla-gracias.activa { display: flex; }
     .input-group { margin-bottom: 16px; }
     .input-group label { display: block; font-size: 13px; color: #555; margin-bottom: 6px; font-weight: bold; }
     .input-group input { width: 100%; padding: 16px; border: 2px solid #ddd; border-radius: 8px; font-size: 20px; text-align: center; letter-spacing: 2px; }
@@ -30,6 +28,7 @@
     .btn-rojo { width: 100%; padding: 16px; background: #B71C1C; color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 8px; }
     .btn-rojo:active { background: #8B0000; }
     .btn-verde { width: 100%; padding: 16px; background: #2E7D32; color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 8px; }
+    .btn-gris { width: 100%; padding: 12px; background: #f5f5f5; color: #555; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; margin-top: 8px; }
     .nota { font-size: 11px; color: #999; text-align: center; margin-top: 12px; line-height: 1.5; }
     .cliente-info { background: #f5f5f5; border-left: 4px solid #B71C1C; padding: 12px; margin-bottom: 16px; border-radius: 4px; }
     .cliente-info h3 { font-size: 18px; color: #111; margin-bottom: 2px; }
@@ -43,32 +42,6 @@
     .barra-labels { display: flex; justify-content: space-between; font-size: 11px; color: #999; }
     .faltan        { text-align: center; font-size: 13px; color: #555; margin-bottom: 12px; }
     .faltan strong { color: #B71C1C; }
-    .ya-badge        { text-align: center; padding: 20px 0; }
-    .ya-badge .icono { font-size: 64px; margin-bottom: 16px; }
-    .ya-badge h3     { font-size: 20px; color: #2E7D32; margin-bottom: 8px; }
-    .ya-badge p      { font-size: 14px; color: #555; line-height: 1.6; }
-    .premio-header    { background: #000; padding: 24px 20px; text-align: center; border-bottom: 3px solid #F9A825; flex-shrink: 0; }
-    .premio-header h2 { color: #F9A825; font-size: 24px; font-weight: 900; }
-    .premio-header p  { color: #fff; font-size: 13px; margin-top: 4px; }
-    .premio-body      { padding: 24px 20px; text-align: center; flex: 1; display: flex; flex-direction: column; justify-content: center; }
-    .trofeo           { font-size: 72px; margin-bottom: 16px; }
-    .premio-texto     { font-size: 15px; color: #333; line-height: 1.7; margin-bottom: 20px; }
-    .seguridad-nota   { background: #FFF8E1; border: 1px solid #FFE082; border-radius: 8px; padding: 12px; font-size: 11px; color: #F57F17; line-height: 1.6; margin-top: 12px; }
-    .gracias-wrap         { padding: 32px 20px; text-align: center; flex: 1; display: flex; flex-direction: column; justify-content: center; }
-    .gracias-icono        { font-size: 72px; margin-bottom: 16px; animation: pop 0.4s ease; }
-    @keyframes pop { 0% { transform: scale(0.4); opacity: 0; } 80% { transform: scale(1.15); } 100% { transform: scale(1); opacity: 1; } }
-    .gracias-titulo       { font-size: 24px; font-weight: 900; color: #2E7D32; margin-bottom: 6px; }
-    .gracias-nombre       { font-size: 16px; color: #333; margin-bottom: 24px; }
-    .gracias-puntos-box   { background: #f5f5f5; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
-    .gracias-puntos-num   { font-size: 64px; font-weight: 900; color: #B71C1C; line-height: 1; }
-    .gracias-puntos-label { font-size: 13px; color: #777; margin-top: 4px; }
-    .gracias-barra-track  { background: #e0e0e0; border-radius: 20px; height: 14px; overflow: hidden; margin: 14px 0 6px; }
-    .gracias-barra-fill   { background: #2E7D32; height: 100%; border-radius: 20px; transition: width 0.8s ease; }
-    .gracias-barra-labels { display: flex; justify-content: space-between; font-size: 11px; color: #999; }
-    .gracias-faltan        { font-size: 14px; color: #555; }
-    .gracias-faltan strong { color: #B71C1C; }
-    .gracias-countdown     { font-size: 12px; color: #aaa; margin-top: 20px; }
-    .gracias-countdown span { font-weight: bold; color: #555; }
     .loading   { text-align: center; padding: 16px; color: #777; font-size: 14px; display: none; }
     .error-msg { background: #FFEBEE; border-radius: 8px; padding: 12px; font-size: 13px; color: #B71C1C; text-align: center; margin-top: 12px; display: none; }
     .qr-wrap { text-align: center; margin: 8px 0; }
@@ -78,13 +51,22 @@
     .punto-asignado .icono { font-size: 32px; margin-bottom: 4px; }
     .punto-asignado p { font-size: 14px; color: #2E7D32; font-weight: bold; }
     .countdown-cierre { font-size: 12px; color: #aaa; margin-top: 6px; }
-    .req-box { background: #fff; border-radius: 16px; padding: 28px 20px; }
-    .req-box h3 { font-size: 20px; font-weight: 900; color: #111; margin-bottom: 8px; text-align: center; }
-    .req-box p { font-size: 13px; color: #555; text-align: center; margin-bottom: 20px; line-height: 1.6; }
-    .req-paso { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 16px; background: #f5f5f5; border-radius: 10px; padding: 14px; }
-    .req-paso .num { background: #B71C1C; color: #fff; font-size: 14px; font-weight: bold; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .req-paso .texto { font-size: 13px; color: #333; line-height: 1.5; }
-    .req-paso .texto strong { color: #111; }
+    .premio-header    { background: #000; padding: 24px 20px; text-align: center; border-bottom: 3px solid #F9A825; flex-shrink: 0; }
+    .premio-header h2 { color: #F9A825; font-size: 24px; font-weight: 900; }
+    .premio-header p  { color: #fff; font-size: 13px; margin-top: 4px; }
+    .premio-body      { padding: 24px 20px; text-align: center; flex: 1; display: flex; flex-direction: column; justify-content: center; }
+    .trofeo           { font-size: 72px; margin-bottom: 16px; }
+    .premio-texto     { font-size: 15px; color: #333; line-height: 1.7; margin-bottom: 20px; }
+    .seguridad-nota   { background: #FFF8E1; border: 1px solid #FFE082; border-radius: 8px; padding: 12px; font-size: 11px; color: #F57F17; line-height: 1.6; margin-top: 12px; }
+    .paso-box { background: #fff; padding: 8px 0; }
+    .paso-icono { font-size: 56px; text-align: center; margin-bottom: 16px; }
+    .paso-titulo { font-size: 22px; font-weight: 900; color: #111; text-align: center; margin-bottom: 8px; }
+    .paso-sub { font-size: 14px; color: #555; text-align: center; margin-bottom: 24px; line-height: 1.6; }
+    .instruccion-box { background: #f5f5f5; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+    .instruccion-box .paso-num { display: inline-block; background: #B71C1C; color: #fff; width: 24px; height: 24px; border-radius: 50%; font-size: 13px; font-weight: bold; text-align: center; line-height: 24px; margin-right: 8px; }
+    .instruccion-box span { font-size: 14px; color: #333; }
+    .sistema-box { background: #000; border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+    .sistema-box p { color: #F9A825; font-size: 13px; text-align: center; line-height: 1.6; }
   </style>
 </head>
 <body>
@@ -97,32 +79,47 @@
 
   <div class="pantallas">
 
-    <!-- PANTALLA: Requisitos -->
-    <div class="pantalla" id="pantalla-requisitos">
-      <div class="req-box">
-        <div style="font-size:48px;text-align:center;margin-bottom:12px">⚽</div>
-        <h3>Para participar en la promo</h3>
-        <p>Instalá la app en tu celular para acceder al sistema de puntos y recibir promos exclusivas.</p>
-        <div class="req-paso">
-          <div class="num">1</div>
-          <div class="texto">
-            <strong>Instalá la app</strong><br>
-            Apretá el botón de abajo y luego tocá "Instalar" cuando aparezca el aviso
-          </div>
+    <!-- PASO 1: Bienvenida e instrucciones de instalación -->
+    <div class="pantalla" id="pantalla-instalar">
+      <div class="paso-box">
+        <div class="paso-icono">⚽</div>
+        <div class="paso-titulo">¡Bienvenido a la promo!</div>
+        <div class="paso-sub">Jugá 10 partidos y ganás uno <strong>GRATIS</strong>. Para participar instalá la app en tu celular.</div>
+        <div class="sistema-box">
+          <p>🏆 Con la app instalada podés ver tus puntos y recibir promos exclusivas</p>
         </div>
-        <div class="req-paso">
-          <div class="num">2</div>
-          <div class="texto">
-            <strong>Aceptá las notificaciones</strong><br>
-            Tocá "Permitir" para recibir promos y avisos exclusivos
-          </div>
+        <div class="instruccion-box">
+          <span class="paso-num">1</span>
+          <span>Tocá los <strong>3 puntitos</strong> arriba a la derecha del navegador</span>
         </div>
-        <button class="btn-rojo" id="btn-instalar" onclick="intentarEntrar()">📲 Instalar app y entrar ⚽</button>
-        <p class="nota" style="margin-top:12px">Si ya la instalaste, abrila desde el ícono en tu pantalla de inicio</p>
+        <div class="instruccion-box">
+          <span class="paso-num">2</span>
+          <span>Tocá <strong>"Agregar a pantalla de inicio"</strong> o <strong>"Instalar app"</strong></span>
+        </div>
+        <div class="instruccion-box">
+          <span class="paso-num">3</span>
+          <span>Tocá <strong>"Instalar"</strong> cuando aparezca el aviso</span>
+        </div>
+        <button class="btn-rojo" onclick="confirmarInstalacion()">✅ Ya la instalé — Continuar</button>
+        <p class="nota">Abrí la app desde el ícono ⚽ en tu pantalla de inicio</p>
       </div>
     </div>
 
-    <!-- PANTALLA 1: Ingresar número -->
+    <!-- PASO 2: Pedir notificaciones -->
+    <div class="pantalla" id="pantalla-notificaciones">
+      <div class="paso-box">
+        <div class="paso-icono">🔔</div>
+        <div class="paso-titulo">Activá las notificaciones</div>
+        <div class="paso-sub">Así te avisamos de promos, partidos gratis y novedades exclusivas de Higuito.</div>
+        <div class="sistema-box">
+          <p>📱 Las notificaciones llegan directo a tu celular como las de WhatsApp</p>
+        </div>
+        <button class="btn-rojo" onclick="pedirNotificaciones()">🔔 Activar notificaciones</button>
+        <button class="btn-gris" onclick="saltarNotificaciones()">Ahora no</button>
+      </div>
+    </div>
+
+    <!-- PASO 3: Ingresar número -->
     <div class="pantalla" id="pantalla-numero">
       <div class="input-group">
         <label>Ingresá tu número de WhatsApp</label>
@@ -134,7 +131,7 @@
       <p class="nota">Ingresá tu número con código de país. Ej: 50688881111</p>
     </div>
 
-    <!-- PANTALLA 2: Cliente con QR integrado -->
+    <!-- PANTALLA: Cliente con QR -->
     <div class="pantalla" id="pantalla-cliente">
       <div class="cliente-info">
         <h3 id="cliente-nombre">Juan</h3>
@@ -162,19 +159,6 @@
       </div>
     </div>
 
-    <!-- PANTALLA 3: Ya registrado hoy -->
-    <div class="pantalla" id="pantalla-ya-registrado">
-      <div class="ya-badge">
-        <div class="icono">✅</div>
-        <h3>¡Ya registraste tu punto hoy!</h3>
-        <p>Solo podés registrar un punto por partido jugado.<br>¡Volvé la próxima vez que vengás a jugar!</p>
-      </div>
-      <div class="cliente-info" style="margin-top:16px">
-        <h3 id="ya-nombre">Juan</h3>
-        <p id="ya-puntos">Puntos acumulados: 0</p>
-      </div>
-    </div>
-
     <!-- PANTALLA: Registro nuevo cliente -->
     <div class="pantalla" id="pantalla-registro">
       <div class="cliente-info" style="border-left: 4px solid #2E7D32;">
@@ -199,7 +183,7 @@
       <p class="nota">🏆 Con 10 partidos jugados ganás uno GRATIS</p>
     </div>
 
-    <!-- PANTALLA 4: Premio -->
+    <!-- PANTALLA: Premio -->
     <div id="pantalla-premio">
       <div class="premio-header">
         <h2>🏆 ¡PARTIDO GRATIS!</h2>
@@ -218,25 +202,6 @@
       </div>
     </div>
 
-    <!-- PANTALLA 5: Gracias -->
-    <div id="pantalla-gracias">
-      <div class="gracias-wrap">
-        <div class="gracias-icono">⚽</div>
-        <div class="gracias-titulo">¡Punto registrado!</div>
-        <div class="gracias-nombre" id="gracias-nombre">¡Gracias, Juan!</div>
-        <div class="gracias-puntos-box">
-          <div class="gracias-puntos-num" id="gracias-puntos-num">0</div>
-          <div class="gracias-puntos-label">puntos acumulados</div>
-          <div class="gracias-barra-track">
-            <div class="gracias-barra-fill" id="gracias-barra-fill" style="width:0%"></div>
-          </div>
-          <div class="gracias-barra-labels"><span>0</span><span>5</span><span>10</span></div>
-        </div>
-        <p class="gracias-faltan" id="gracias-faltan-texto"></p>
-        <p class="gracias-countdown">Esta pantalla se cierra en <span id="cuenta-regresiva">5</span> segundos...</p>
-      </div>
-    </div>
-
   </div>
 
 <script>
@@ -245,114 +210,95 @@
   let cuentaRegresivaInterval = null;
   let pollingInterval = null;
   let puntosAntes = 0;
-  let deferredPrompt = null;
 
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    const btn = document.getElementById('btn-instalar');
-    if (btn) btn.textContent = '📲 Instalar app y entrar ⚽';
-  });
-
-  window.addEventListener('appinstalled', () => {
-    localStorage.setItem('higuito_instalada', 'ok');
-    deferredPrompt = null;
-  });
-
-  function estaInstalada() {
-    return window.matchMedia('(display-mode: standalone)').matches ||
-           window.navigator.standalone === true ||
-           document.referrer.includes('android-app://') ||
-           localStorage.getItem('higuito_instalada') === 'ok';
-  }
-
-  async function pedirNotificaciones() {
-    if (!('Notification' in window)) return false;
-    if (Notification.permission === 'granted') return true;
-    if (Notification.permission === 'denied') return false;
-    const permiso = await Notification.requestPermission();
-    return permiso === 'granted';
-  }
-
-  async function intentarEntrar() {
-    const instalada = estaInstalada();
-    if (!instalada) {
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        deferredPrompt = null;
-        if (outcome === 'accepted') {
-          const btn = document.getElementById('btn-instalar');
-          if (btn) { btn.textContent = '⏳ Instalando...'; btn.disabled = true; }
-          setTimeout(() => location.reload(), 2000);
-        }
+  window.onload = async function() {
+    // Si ya completó todo el flujo antes → ir directo
+    const listo = localStorage.getItem('higuito_listo');
+    if (listo === 'ok') {
+      const telGuardado = localStorage.getItem('higuito_telefono');
+      if (telGuardado) {
+        telefonoActual = telGuardado;
+        mostrarCargando();
+        await cargarClienteDirecto(telGuardado);
       } else {
-        const paso1 = document.querySelector('.req-paso .texto');
-        if (paso1) paso1.innerHTML = '<strong>Instalá la app manualmente</strong><br>Tocá los 3 puntitos del navegador → "Agregar a pantalla de inicio" o "Instalar app"';
+        mostrarPantalla('pantalla-numero');
       }
       return;
     }
-    const notif = await pedirNotificaciones();
-    if (notif) {
-      localStorage.setItem('higuito_requisitos', 'ok');
-      iniciarApp();
-    } else {
-      mostrarPantalla('pantalla-requisitos');
+
+    // Si ya instaló pero no completó notificaciones
+    const instalo = localStorage.getItem('higuito_instalo');
+    if (instalo === 'ok') {
+      mostrarPantalla('pantalla-notificaciones');
+      return;
     }
+
+    // Primera vez — mostrar instrucciones de instalación
+    mostrarPantalla('pantalla-instalar');
+  };
+
+  function mostrarCargando() {
+    document.querySelector('.pantallas').innerHTML = `
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100%;padding:32px 20px;text-align:center;background:#fff;">
+        <div style="font-size:48px;margin-bottom:16px">⚽</div>
+        <p style="color:#777;font-size:14px">Cargando tus puntos...</p>
+      </div>`;
   }
 
-  function iniciarApp() {
+  function confirmarInstalacion() {
+    localStorage.setItem('higuito_instalo', 'ok');
+    mostrarPantalla('pantalla-notificaciones');
+  }
+
+  async function pedirNotificaciones() {
+    if ('Notification' in window) {
+      const permiso = await Notification.requestPermission();
+      if (permiso === 'granted') {
+        localStorage.setItem('higuito_notif', 'ok');
+      }
+    }
+    // Tanto si acepta como si no, continúa
+    localStorage.setItem('higuito_listo', 'ok');
     const telGuardado = localStorage.getItem('higuito_telefono');
     if (telGuardado) {
       telefonoActual = telGuardado;
-      cargarClienteDirecto(telGuardado);
+      mostrarCargando();
+      await cargarClienteDirecto(telGuardado);
     } else {
       mostrarPantalla('pantalla-numero');
     }
   }
 
-  window.onload = async function() {
-    const instalada = estaInstalada();
-    if (instalada) {
-      const notif = await pedirNotificaciones();
-      if (notif) {
-        localStorage.setItem('higuito_requisitos', 'ok');
-        iniciarApp();
-      } else {
-        mostrarPantalla('pantalla-requisitos');
-      }
+  function saltarNotificaciones() {
+    localStorage.setItem('higuito_listo', 'ok');
+    const telGuardado = localStorage.getItem('higuito_telefono');
+    if (telGuardado) {
+      telefonoActual = telGuardado;
+      mostrarPantalla('pantalla-numero');
     } else {
-      mostrarPantalla('pantalla-requisitos');
+      mostrarPantalla('pantalla-numero');
     }
-  };
+  }
 
   async function cargarClienteDirecto(telefono) {
-    document.querySelector('.pantallas').innerHTML = `
-      <div id="pantalla-cargando" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100%;padding:32px 20px;text-align:center;background:#fff;">
-        <div style="font-size:48px;margin-bottom:16px">⚽</div>
-        <p style="color:#777;font-size:14px">Cargando tus puntos...</p>
-      </div>`;
     try {
       const resp = await fetch(SCRIPT_URL + '?accion=verificar&telefono=' + telefono);
       const data = await resp.json();
       if (data.encontrado) {
-        location.reload();
+        mostrarCliente(data);
       } else {
         localStorage.removeItem('higuito_telefono');
-        location.reload();
+        mostrarPantalla('pantalla-numero');
       }
     } catch(e) {
-      localStorage.removeItem('higuito_telefono');
-      location.reload();
+      mostrarPantalla('pantalla-numero');
     }
   }
 
   function mostrarPantalla(id) {
     document.querySelectorAll('.pantalla').forEach(p => p.classList.remove('activa'));
-    document.getElementById('pantalla-premio').classList.remove('activa');
-    document.getElementById('pantalla-premio').style.display = 'none';
-    document.getElementById('pantalla-gracias').classList.remove('activa');
-    document.getElementById('pantalla-gracias').style.display = 'none';
+    const premio = document.getElementById('pantalla-premio');
+    if (premio) { premio.classList.remove('activa'); premio.style.display = 'none'; }
     const el = document.getElementById(id);
     if (!el) return;
     if (el.classList.contains('pantalla')) {
