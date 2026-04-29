@@ -67,6 +67,8 @@
     .instruccion-box span { font-size: 14px; color: #333; line-height: 1.5; }
     .sistema-box { background: #000; border-radius: 12px; padding: 16px; margin-bottom: 16px; }
     .sistema-box p { color: #F9A825; font-size: 13px; text-align: center; line-height: 1.6; }
+    #pantalla-cargando { display: none; min-height: 100%; flex-direction: column; align-items: center; justify-content: center; padding: 32px 20px; text-align: center; }
+    #pantalla-cargando.activa { display: flex; }
   </style>
 </head>
 <body>
@@ -78,6 +80,12 @@
   </div>
 
   <div class="pantallas">
+
+    <!-- PANTALLA: Cargando -->
+    <div id="pantalla-cargando">
+      <div style="font-size:48px;margin-bottom:16px">⚽</div>
+      <p style="color:#777;font-size:14px">Cargando tus puntos...</p>
+    </div>
 
     <!-- PASO 1: Instrucciones instalación -->
     <div class="pantalla" id="pantalla-instalar">
@@ -217,6 +225,7 @@
       const telGuardado = localStorage.getItem('higuito_telefono');
       if (telGuardado) {
         telefonoActual = telGuardado;
+        mostrarPantalla('pantalla-cargando');
         await cargarClienteDirecto(telGuardado);
       } else {
         mostrarPantalla('pantalla-numero');
@@ -247,6 +256,7 @@
     const telGuardado = localStorage.getItem('higuito_telefono');
     if (telGuardado) {
       telefonoActual = telGuardado;
+      mostrarPantalla('pantalla-cargando');
       await cargarClienteDirecto(telGuardado);
     } else {
       mostrarPantalla('pantalla-numero');
@@ -259,33 +269,31 @@
   }
 
   async function cargarClienteDirecto(telefono) {
-    document.querySelector('.pantallas').innerHTML = `
-      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100%;padding:32px 20px;text-align:center;background:#fff;">
-        <div style="font-size:48px;margin-bottom:16px">⚽</div>
-        <p style="color:#777;font-size:14px">Cargando tus puntos...</p>
-      </div>`;
     try {
       const resp = await fetch(SCRIPT_URL + '?accion=verificar&telefono=' + telefono);
       const data = await resp.json();
       if (data.encontrado) {
-        // Reconstruir pantallas y mostrar cliente
-        location.reload();
+        mostrarCliente(data);
       } else {
         localStorage.removeItem('higuito_telefono');
-        location.reload();
+        mostrarPantalla('pantalla-numero');
       }
     } catch(e) {
-      location.reload();
+      mostrarPantalla('pantalla-numero');
     }
   }
 
   function mostrarPantalla(id) {
     document.querySelectorAll('.pantalla').forEach(p => p.classList.remove('activa'));
+    const cargando = document.getElementById('pantalla-cargando');
+    if (cargando) cargando.classList.remove('activa');
     const premio = document.getElementById('pantalla-premio');
     if (premio) { premio.classList.remove('activa'); premio.style.display = 'none'; }
     const el = document.getElementById(id);
     if (!el) return;
-    if (el.classList.contains('pantalla')) {
+    if (id === 'pantalla-cargando') {
+      el.classList.add('activa');
+    } else if (el.classList.contains('pantalla')) {
       el.classList.add('activa');
     } else {
       el.style.display = 'flex';
