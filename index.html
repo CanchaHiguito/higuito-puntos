@@ -62,9 +62,9 @@
     .paso-icono { font-size: 56px; text-align: center; margin-bottom: 16px; }
     .paso-titulo { font-size: 22px; font-weight: 900; color: #111; text-align: center; margin-bottom: 8px; }
     .paso-sub { font-size: 14px; color: #555; text-align: center; margin-bottom: 24px; line-height: 1.6; }
-    .instruccion-box { background: #f5f5f5; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
-    .instruccion-box .paso-num { display: inline-block; background: #B71C1C; color: #fff; width: 24px; height: 24px; border-radius: 50%; font-size: 13px; font-weight: bold; text-align: center; line-height: 24px; margin-right: 8px; }
-    .instruccion-box span { font-size: 14px; color: #333; }
+    .instruccion-box { background: #f5f5f5; border-radius: 12px; padding: 16px; margin-bottom: 12px; display: flex; align-items: center; gap: 12px; }
+    .instruccion-box .paso-num { display: inline-flex; align-items: center; justify-content: center; background: #B71C1C; color: #fff; width: 28px; height: 28px; border-radius: 50%; font-size: 13px; font-weight: bold; flex-shrink: 0; }
+    .instruccion-box span { font-size: 14px; color: #333; line-height: 1.5; }
     .sistema-box { background: #000; border-radius: 12px; padding: 16px; margin-bottom: 16px; }
     .sistema-box p { color: #F9A825; font-size: 13px; text-align: center; line-height: 1.6; }
   </style>
@@ -79,7 +79,7 @@
 
   <div class="pantallas">
 
-    <!-- PASO 1: Bienvenida e instrucciones de instalación -->
+    <!-- PASO 1: Instrucciones instalación -->
     <div class="pantalla" id="pantalla-instalar">
       <div class="paso-box">
         <div class="paso-icono">⚽</div>
@@ -89,15 +89,15 @@
           <p>🏆 Con la app instalada podés ver tus puntos y recibir promos exclusivas</p>
         </div>
         <div class="instruccion-box">
-          <span class="paso-num">1</span>
+          <div class="paso-num">1</div>
           <span>Tocá los <strong>3 puntitos</strong> arriba a la derecha del navegador</span>
         </div>
         <div class="instruccion-box">
-          <span class="paso-num">2</span>
+          <div class="paso-num">2</div>
           <span>Tocá <strong>"Agregar a pantalla de inicio"</strong> o <strong>"Instalar app"</strong></span>
         </div>
         <div class="instruccion-box">
-          <span class="paso-num">3</span>
+          <div class="paso-num">3</div>
           <span>Tocá <strong>"Instalar"</strong> cuando aparezca el aviso</span>
         </div>
         <button class="btn-rojo" onclick="confirmarInstalacion()">✅ Ya la instalé — Continuar</button>
@@ -105,7 +105,7 @@
       </div>
     </div>
 
-    <!-- PASO 2: Pedir notificaciones -->
+    <!-- PASO 2: Notificaciones -->
     <div class="pantalla" id="pantalla-notificaciones">
       <div class="paso-box">
         <div class="paso-icono">🔔</div>
@@ -123,7 +123,7 @@
     <div class="pantalla" id="pantalla-numero">
       <div class="input-group">
         <label>Ingresá tu número de WhatsApp</label>
-        <input type="tel" id="input-telefono" placeholder="506XXXXXXXX" maxlength="11">
+        <input type="tel" id="input-telefono" placeholder="506XXXXXXXX" maxlength="11" autocomplete="off">
       </div>
       <button class="btn-rojo" onclick="verificarNumero()">Consultar mis puntos</button>
       <div class="loading" id="loading-verificar">Verificando...</div>
@@ -167,15 +167,15 @@
       </div>
       <div class="input-group" style="margin-top:16px">
         <label>Tu nombre</label>
-        <input type="text" id="reg-nombre" placeholder="Ej: Juan">
+        <input type="text" id="reg-nombre" placeholder="Ej: Juan" autocomplete="off">
       </div>
       <div class="input-group">
         <label>Número de cédula</label>
-        <input type="text" id="reg-cedula" placeholder="Ej: 110210948">
+        <input type="text" id="reg-cedula" placeholder="Ej: 110210948" autocomplete="off" inputmode="numeric">
       </div>
       <div class="input-group">
         <label>Fecha de nacimiento</label>
-        <input type="text" id="reg-fecha" placeholder="DD/MM/AAAA">
+        <input type="text" id="reg-fecha" placeholder="DD/MM/AAAA" autocomplete="off" inputmode="numeric">
       </div>
       <button class="btn-rojo" onclick="registrarCliente()">Registrarme ⚽</button>
       <div class="loading" id="loading-registro" style="display:none">Registrando...</div>
@@ -212,38 +212,24 @@
   let puntosAntes = 0;
 
   window.onload = async function() {
-    // Si ya completó todo el flujo antes → ir directo
     const listo = localStorage.getItem('higuito_listo');
     if (listo === 'ok') {
       const telGuardado = localStorage.getItem('higuito_telefono');
       if (telGuardado) {
         telefonoActual = telGuardado;
-        mostrarCargando();
         await cargarClienteDirecto(telGuardado);
       } else {
         mostrarPantalla('pantalla-numero');
       }
       return;
     }
-
-    // Si ya instaló pero no completó notificaciones
     const instalo = localStorage.getItem('higuito_instalo');
     if (instalo === 'ok') {
       mostrarPantalla('pantalla-notificaciones');
       return;
     }
-
-    // Primera vez — mostrar instrucciones de instalación
     mostrarPantalla('pantalla-instalar');
   };
-
-  function mostrarCargando() {
-    document.querySelector('.pantallas').innerHTML = `
-      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100%;padding:32px 20px;text-align:center;background:#fff;">
-        <div style="font-size:48px;margin-bottom:16px">⚽</div>
-        <p style="color:#777;font-size:14px">Cargando tus puntos...</p>
-      </div>`;
-  }
 
   function confirmarInstalacion() {
     localStorage.setItem('higuito_instalo', 'ok');
@@ -257,12 +243,10 @@
         localStorage.setItem('higuito_notif', 'ok');
       }
     }
-    // Tanto si acepta como si no, continúa
     localStorage.setItem('higuito_listo', 'ok');
     const telGuardado = localStorage.getItem('higuito_telefono');
     if (telGuardado) {
       telefonoActual = telGuardado;
-      mostrarCargando();
       await cargarClienteDirecto(telGuardado);
     } else {
       mostrarPantalla('pantalla-numero');
@@ -271,27 +255,27 @@
 
   function saltarNotificaciones() {
     localStorage.setItem('higuito_listo', 'ok');
-    const telGuardado = localStorage.getItem('higuito_telefono');
-    if (telGuardado) {
-      telefonoActual = telGuardado;
-      mostrarPantalla('pantalla-numero');
-    } else {
-      mostrarPantalla('pantalla-numero');
-    }
+    mostrarPantalla('pantalla-numero');
   }
 
   async function cargarClienteDirecto(telefono) {
+    document.querySelector('.pantallas').innerHTML = `
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100%;padding:32px 20px;text-align:center;background:#fff;">
+        <div style="font-size:48px;margin-bottom:16px">⚽</div>
+        <p style="color:#777;font-size:14px">Cargando tus puntos...</p>
+      </div>`;
     try {
       const resp = await fetch(SCRIPT_URL + '?accion=verificar&telefono=' + telefono);
       const data = await resp.json();
       if (data.encontrado) {
-        mostrarCliente(data);
+        // Reconstruir pantallas y mostrar cliente
+        location.reload();
       } else {
         localStorage.removeItem('higuito_telefono');
-        mostrarPantalla('pantalla-numero');
+        location.reload();
       }
     } catch(e) {
-      mostrarPantalla('pantalla-numero');
+      location.reload();
     }
   }
 
