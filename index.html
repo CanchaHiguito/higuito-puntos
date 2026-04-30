@@ -214,6 +214,7 @@
 
 <script>
   const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyzpDCe_abY6qPBGhE7fPIZL8wjV5Fn7R4XBmhZxehKA5zDzrcyOIYbp8YdS6sAaw/exec';
+  const VAPID_PUBLIC_KEY = 'BH_8aX4DPBZLSNYuXRwCEH6mvFDutayAmtBjFwoV_pEpMSlHuqYGd-oWcH5MKrIJadmGfxFBLRna06kbC0G9XuA';
   let telefonoActual = '';
   let cuentaRegresivaInterval = null;
   let pollingInterval = null;
@@ -246,10 +247,25 @@
   }
 
   async function pedirNotificaciones() {
-    if ('Notification' in window) {
+    if ('Notification' in window && 'serviceWorker' in navigator) {
       const permiso = await Notification.requestPermission();
       if (permiso === 'granted') {
         localStorage.setItem('higuito_notif', 'ok');
+        try {
+          const reg = await navigator.serviceWorker.ready;
+          const sub = await reg.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: VAPID_PUBLIC_KEY
+          });
+          localStorage.setItem('higuito_push_sub', JSON.stringify(sub));
+          // Guardar suscripción en el servidor cuando tengamos teléfono
+          const telGuardado = localStorage.getItem('higuito_telefono');
+          if (telGuardado) {
+            await guardarSuscripcion(telGuardado, sub);
+          }
+        } catch(e) {
+          console.log('Error suscribiendo push:', e);
+        }
       }
     }
     localStorage.setItem('higuito_listo', 'ok');
@@ -260,6 +276,14 @@
       await cargarClienteDirecto(telGuardado);
     } else {
       mostrarPantalla('pantalla-numero');
+    }
+  }
+
+  async function guardarSuscripcion(telefono, sub) {
+    try {
+      await fetch(SCRIPT_URL + '?accion=guardarPush&telefono=' + telefono + '&sub=' + encodeURIComponent(JSON.stringify(sub)));
+    } catch(e) {
+      console.log('Error guardando suscripción:', e);
     }
   }
 
@@ -316,6 +340,11 @@
       if (data.encontrado) {
         telefonoActual = telefono;
         localStorage.setItem('higuito_telefono', telefono);
+        // Guardar suscripción push si ya la tiene
+        const subStr = localStorage.getItem('higuito_push_sub');
+        if (subStr) {
+          await guardarSuscripcion(telefono, JSON.parse(subStr));
+        }
         mostrarCliente(data);
       } else {
         telefonoActual = telefono;
@@ -444,6 +473,11 @@
       document.getElementById('loading-registro').style.display = 'none';
       if (data.ok) {
         localStorage.setItem('higuito_telefono', telefonoActual);
+        // Guardar suscripción push si ya la tiene
+        const subStr = localStorage.getItem('higuito_push_sub');
+        if (subStr) {
+          await guardarSuscripcion(telefonoActual, JSON.parse(subStr));
+        }
         document.getElementById('pantalla-registro').innerHTML = `
           <div style="text-align:center;padding:24px 16px">
             <div style="font-size:56px;margin-bottom:12px">🎉</div>
