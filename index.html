@@ -8,6 +8,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="manifest.json">
+  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body { height: 100%; width: 100%; overflow: hidden; }
@@ -214,11 +215,21 @@
 
 <script>
   const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyzpDCe_abY6qPBGhE7fPIZL8wjV5Fn7R4XBmhZxehKA5zDzrcyOIYbp8YdS6sAaw/exec';
-  const VAPID_PUBLIC_KEY = 'BH_8aX4DPBZLSNYuXRwCEH6mvFDutayAmtBjFwoV_pEpMSlHuqYGd-oWcH5MKrIJadmGfxFBLRna06kbC0G9XuA';
+  const ONESIGNAL_APP_ID = 'd6d09ae0-c72c-4d74-a310-d8dcc0a831e3';
   let telefonoActual = '';
   let cuentaRegresivaInterval = null;
   let pollingInterval = null;
   let puntosAntes = 0;
+
+  // Inicializar OneSignal
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  OneSignalDeferred.push(async function(OneSignal) {
+    await OneSignal.init({
+      appId: ONESIGNAL_APP_ID,
+      notifyButton: { enable: false },
+      autoResubscribe: true,
+    });
+  });
 
   window.onload = async function() {
     const listo = localStorage.getItem('higuito_listo');
@@ -247,26 +258,23 @@
   }
 
   async function pedirNotificaciones() {
-    if ('Notification' in window && 'serviceWorker' in navigator) {
-      const permiso = await Notification.requestPermission();
-      if (permiso === 'granted') {
-        localStorage.setItem('higuito_notif', 'ok');
-        try {
-          const reg = await navigator.serviceWorker.ready;
-          const sub = await reg.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: VAPID_PUBLIC_KEY
-          });
-          localStorage.setItem('higuito_push_sub', JSON.stringify(sub));
-          // Guardar suscripción en el servidor cuando tengamos teléfono
-          const telGuardado = localStorage.getItem('higuito_telefono');
-          if (telGuardado) {
-            await guardarSuscripcion(telGuardado, sub);
+    try {
+      await new Promise(resolve => {
+        OneSignalDeferred.push(async function(OneSignal) {
+          await OneSignal.Notifications.requestPermission();
+          const id = await OneSignal.User.PushSubscription.id;
+          if (id) {
+            localStorage.setItem('higuito_onesignal_id', id);
+            const telGuardado = localStorage.getItem('higuito_telefono');
+            if (telGuardado) {
+              await guardarOneSignalId(telGuardado, id);
+            }
           }
-        } catch(e) {
-          console.log('Error suscribiendo push:', e);
-        }
-      }
+          resolve();
+        });
+      });
+    } catch(e) {
+      console.log('Error OneSignal:', e);
     }
     localStorage.setItem('higuito_listo', 'ok');
     const telGuardado = localStorage.getItem('higuito_telefono');
@@ -279,11 +287,11 @@
     }
   }
 
-  async function guardarSuscripcion(telefono, sub) {
+  async function guardarOneSignalId(telefono, osId) {
     try {
-      await fetch(SCRIPT_URL + '?accion=guardarPush&telefono=' + telefono + '&sub=' + encodeURIComponent(JSON.stringify(sub)));
+      await fetch(SCRIPT_URL + '?accion=guardarPush&telefono=' + telefono + '&sub=' + encodeURIComponent(osId));
     } catch(e) {
-      console.log('Error guardando suscripción:', e);
+      console.log('Error guardando ID:', e);
     }
   }
 
@@ -340,11 +348,9 @@
       if (data.encontrado) {
         telefonoActual = telefono;
         localStorage.setItem('higuito_telefono', telefono);
-        // Guardar suscripción push si ya la tiene
-        const subStr = localStorage.getItem('higuito_push_sub');
-        if (subStr) {
-          await guardarSuscripcion(telefono, JSON.parse(subStr));
-        }
+        // Guardar OneSignal ID si ya lo tiene
+        const osId = localStorage.getItem('higuito_onesignal_id');
+        if (osId) await guardarOneSignalId(telefono, osId);
         mostrarCliente(data);
       } else {
         telefonoActual = telefono;
@@ -473,11 +479,8 @@
       document.getElementById('loading-registro').style.display = 'none';
       if (data.ok) {
         localStorage.setItem('higuito_telefono', telefonoActual);
-        // Guardar suscripción push si ya la tiene
-        const subStr = localStorage.getItem('higuito_push_sub');
-        if (subStr) {
-          await guardarSuscripcion(telefonoActual, JSON.parse(subStr));
-        }
+        const osId = localStorage.getItem('higuito_onesignal_id');
+        if (osId) await guardarOneSignalId(telefonoActual, osId);
         document.getElementById('pantalla-registro').innerHTML = `
           <div style="text-align:center;padding:24px 16px">
             <div style="font-size:56px;margin-bottom:12px">🎉</div>
