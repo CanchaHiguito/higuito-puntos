@@ -9,6 +9,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="manifest.json">
+  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body { height: 100%; width: 100%; overflow: hidden; }
@@ -210,11 +211,22 @@
 <script>
   const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyzpDCe_abY6qPBGhE7fPIZL8wjV5Fn7R4XBmhZxehKA5zDzrcyOIYbp8YdS6sAaw/exec';
   const ONESIGNAL_APP_ID = 'd6d09ae0-c72c-4d74-a310-d8dcc0a831e3';
-  const ONESIGNAL_API_KEY = 'os_v2_app_23ijvyghfrgxjiyq3dombkbr4oak7glmf7iejpv4orsp2st5mmsj2wgucc3l2aqxlxg7tnnznmld27szyurujdphio6qha6uy46ebia';
   let telefonoActual = '';
   let cuentaRegresivaInterval = null;
   let pollingInterval = null;
   let puntosAntes = 0;
+
+  // Inicializar OneSignal apuntando al service worker en la raíz del dominio
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  OneSignalDeferred.push(async function(OneSignal) {
+    await OneSignal.init({
+      appId: ONESIGNAL_APP_ID,
+      notifyButton: { enable: false },
+      autoResubscribe: true,
+      serviceWorkerParam: { scope: '/' },
+      serviceWorkerPath: 'https://canchahiguito.github.io/OneSignalSDKWorker.js',
+    });
+  });
 
   window.onload = async function() {
     const listo = localStorage.getItem('higuito_listo');
@@ -249,54 +261,30 @@
     btn.textContent = '⏳ Activando...';
 
     try {
-      if (!('Notification' in window)) {
-        estado.textContent = 'Tu navegador no soporta notificaciones.';
-        await continuar();
-        return;
-      }
-
-      const permiso = await Notification.requestPermission();
-
-      if (permiso === 'granted') {
-        estado.textContent = '✅ ¡Notificaciones activadas!';
-        localStorage.setItem('higuito_notif', 'ok');
-
-        // Registrar en OneSignal via service worker
-        if ('serviceWorker' in navigator) {
-          try {
-            const reg = await navigator.serviceWorker.ready;
-            // Intentar suscribir a OneSignal
-            await fetch('https://onesignal.com/api/v1/players', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                app_id: ONESIGNAL_APP_ID,
-                device_type: 5,
-                identifier: 'web_' + Date.now(),
-                language: 'es',
-                timezone: -21600
-              })
-            }).then(r => r.json()).then(data => {
-              if (data.id) {
-                localStorage.setItem('higuito_onesignal_id', data.id);
-              }
-            });
-          } catch(e) {
-            console.log('OneSignal registro:', e);
+      await new Promise(resolve => {
+        OneSignalDeferred.push(async function(OneSignal) {
+          await OneSignal.Notifications.requestPermission();
+          const id = await OneSignal.User.PushSubscription.id;
+          if (id) {
+            localStorage.setItem('higuito_onesignal_id', id);
+            estado.textContent = '✅ ¡Notificaciones activadas!';
+            localStorage.setItem('higuito_notif', 'ok');
+            const telGuardado = localStorage.getItem('higuito_telefono');
+            if (telGuardado) {
+              await fetch(SCRIPT_URL + '?accion=guardarPush&telefono=' + telGuardado + '&sub=' + encodeURIComponent(id));
+            }
+          } else {
+            estado.textContent = '⚠️ No se pudo activar. Podés intentarlo luego.';
           }
-        }
-
-        setTimeout(() => continuar(), 1500);
-      } else if (permiso === 'denied') {
-        estado.textContent = '⚠️ Notificaciones bloqueadas. Podés activarlas luego desde la configuración.';
-        setTimeout(() => continuar(), 2000);
-      } else {
-        await continuar();
-      }
+          resolve();
+        });
+      });
     } catch(e) {
-      console.log('Error notificaciones:', e);
-      await continuar();
+      console.log('Error OneSignal:', e);
+      estado.textContent = '⚠️ Error al activar notificaciones.';
     }
+
+    setTimeout(() => continuar(), 1500);
   }
 
   async function continuar() {
