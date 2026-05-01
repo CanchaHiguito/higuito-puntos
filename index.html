@@ -9,7 +9,6 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="manifest.json">
-  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body { height: 100%; width: 100%; overflow: hidden; }
@@ -83,13 +82,11 @@
 
   <div class="pantallas">
 
-    <!-- PANTALLA: Cargando -->
     <div id="pantalla-cargando">
       <div style="font-size:48px;margin-bottom:16px">⚽</div>
       <p style="color:#777;font-size:14px">Cargando tus puntos...</p>
     </div>
 
-    <!-- PASO 1: Instrucciones instalación -->
     <div class="pantalla" id="pantalla-instalar">
       <div class="paso-box">
         <div class="paso-icono">⚽</div>
@@ -115,7 +112,6 @@
       </div>
     </div>
 
-    <!-- PASO 2: Notificaciones -->
     <div class="pantalla" id="pantalla-notificaciones">
       <div class="paso-box">
         <div class="paso-icono">🔔</div>
@@ -124,12 +120,12 @@
         <div class="sistema-box">
           <p>📱 Las notificaciones llegan directo a tu celular como las de WhatsApp</p>
         </div>
-        <button class="btn-rojo" onclick="pedirNotificaciones()">🔔 Activar notificaciones</button>
+        <button class="btn-rojo" id="btn-notif" onclick="pedirNotificaciones()">🔔 Activar notificaciones</button>
         <button class="btn-gris" onclick="saltarNotificaciones()">Ahora no</button>
+        <p class="nota" id="notif-estado" style="margin-top:12px"></p>
       </div>
     </div>
 
-    <!-- PASO 3: Ingresar número -->
     <div class="pantalla" id="pantalla-numero">
       <div class="input-group">
         <label>Ingresá tu número de WhatsApp</label>
@@ -141,7 +137,6 @@
       <p class="nota">Ingresá tu número con código de país. Ej: 50688881111</p>
     </div>
 
-    <!-- PANTALLA: Cliente con QR -->
     <div class="pantalla" id="pantalla-cliente">
       <div class="cliente-info">
         <h3 id="cliente-nombre">Juan</h3>
@@ -169,7 +164,6 @@
       </div>
     </div>
 
-    <!-- PANTALLA: Registro nuevo cliente -->
     <div class="pantalla" id="pantalla-registro">
       <div class="cliente-info" style="border-left: 4px solid #2E7D32;">
         <h3 style="color:#2E7D32">📝 Registro en la promo</h3>
@@ -193,7 +187,6 @@
       <p class="nota">🏆 Con 10 partidos jugados ganás uno GRATIS</p>
     </div>
 
-    <!-- PANTALLA: Premio -->
     <div id="pantalla-premio">
       <div class="premio-header">
         <h2>🏆 ¡PARTIDO GRATIS!</h2>
@@ -217,22 +210,11 @@
 <script>
   const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyzpDCe_abY6qPBGhE7fPIZL8wjV5Fn7R4XBmhZxehKA5zDzrcyOIYbp8YdS6sAaw/exec';
   const ONESIGNAL_APP_ID = 'd6d09ae0-c72c-4d74-a310-d8dcc0a831e3';
+  const ONESIGNAL_API_KEY = 'os_v2_app_23ijvyghfrgxjiyq3dombkbr4oak7glmf7iejpv4orsp2st5mmsj2wgucc3l2aqxlxg7tnnznmld27szyurujdphio6qha6uy46ebia';
   let telefonoActual = '';
   let cuentaRegresivaInterval = null;
   let pollingInterval = null;
   let puntosAntes = 0;
-
-  // Inicializar OneSignal con ruta correcta
-  window.OneSignalDeferred = window.OneSignalDeferred || [];
-  OneSignalDeferred.push(async function(OneSignal) {
-    await OneSignal.init({
-      appId: ONESIGNAL_APP_ID,
-      notifyButton: { enable: false },
-      autoResubscribe: true,
-      serviceWorkerParam: { scope: '/higuito-puntos/' },
-      serviceWorkerPath: 'OneSignalSDKWorker.js',
-    });
-  });
 
   window.onload = async function() {
     const listo = localStorage.getItem('higuito_listo');
@@ -261,24 +243,63 @@
   }
 
   async function pedirNotificaciones() {
+    const btn = document.getElementById('btn-notif');
+    const estado = document.getElementById('notif-estado');
+    btn.disabled = true;
+    btn.textContent = '⏳ Activando...';
+
     try {
-      await new Promise(resolve => {
-        OneSignalDeferred.push(async function(OneSignal) {
-          await OneSignal.Notifications.requestPermission();
-          const id = await OneSignal.User.PushSubscription.id;
-          if (id) {
-            localStorage.setItem('higuito_onesignal_id', id);
-            const telGuardado = localStorage.getItem('higuito_telefono');
-            if (telGuardado) {
-              await guardarOneSignalId(telGuardado, id);
-            }
+      if (!('Notification' in window)) {
+        estado.textContent = 'Tu navegador no soporta notificaciones.';
+        await continuar();
+        return;
+      }
+
+      const permiso = await Notification.requestPermission();
+
+      if (permiso === 'granted') {
+        estado.textContent = '✅ ¡Notificaciones activadas!';
+        localStorage.setItem('higuito_notif', 'ok');
+
+        // Registrar en OneSignal via service worker
+        if ('serviceWorker' in navigator) {
+          try {
+            const reg = await navigator.serviceWorker.ready;
+            // Intentar suscribir a OneSignal
+            await fetch('https://onesignal.com/api/v1/players', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                app_id: ONESIGNAL_APP_ID,
+                device_type: 5,
+                identifier: 'web_' + Date.now(),
+                language: 'es',
+                timezone: -21600
+              })
+            }).then(r => r.json()).then(data => {
+              if (data.id) {
+                localStorage.setItem('higuito_onesignal_id', data.id);
+              }
+            });
+          } catch(e) {
+            console.log('OneSignal registro:', e);
           }
-          resolve();
-        });
-      });
+        }
+
+        setTimeout(() => continuar(), 1500);
+      } else if (permiso === 'denied') {
+        estado.textContent = '⚠️ Notificaciones bloqueadas. Podés activarlas luego desde la configuración.';
+        setTimeout(() => continuar(), 2000);
+      } else {
+        await continuar();
+      }
     } catch(e) {
-      console.log('Error OneSignal:', e);
+      console.log('Error notificaciones:', e);
+      await continuar();
     }
+  }
+
+  async function continuar() {
     localStorage.setItem('higuito_listo', 'ok');
     const telGuardado = localStorage.getItem('higuito_telefono');
     if (telGuardado) {
@@ -290,17 +311,8 @@
     }
   }
 
-  async function guardarOneSignalId(telefono, osId) {
-    try {
-      await fetch(SCRIPT_URL + '?accion=guardarPush&telefono=' + telefono + '&sub=' + encodeURIComponent(osId));
-    } catch(e) {
-      console.log('Error guardando ID:', e);
-    }
-  }
-
   function saltarNotificaciones() {
-    localStorage.setItem('higuito_listo', 'ok');
-    mostrarPantalla('pantalla-numero');
+    continuar();
   }
 
   async function cargarClienteDirecto(telefono) {
@@ -352,7 +364,9 @@
         telefonoActual = telefono;
         localStorage.setItem('higuito_telefono', telefono);
         const osId = localStorage.getItem('higuito_onesignal_id');
-        if (osId) await guardarOneSignalId(telefono, osId);
+        if (osId) {
+          fetch(SCRIPT_URL + '?accion=guardarPush&telefono=' + telefono + '&sub=' + encodeURIComponent(osId));
+        }
         mostrarCliente(data);
       } else {
         telefonoActual = telefono;
@@ -482,7 +496,9 @@
       if (data.ok) {
         localStorage.setItem('higuito_telefono', telefonoActual);
         const osId = localStorage.getItem('higuito_onesignal_id');
-        if (osId) await guardarOneSignalId(telefonoActual, osId);
+        if (osId) {
+          fetch(SCRIPT_URL + '?accion=guardarPush&telefono=' + telefonoActual + '&sub=' + encodeURIComponent(osId));
+        }
         document.getElementById('pantalla-registro').innerHTML = `
           <div style="text-align:center;padding:24px 16px">
             <div style="font-size:56px;margin-bottom:12px">🎉</div>
